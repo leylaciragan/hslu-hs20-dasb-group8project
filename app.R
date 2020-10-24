@@ -13,6 +13,7 @@ library(geojsonio)
 library(DT)
 library(dygraphs)
 library(xts)
+library(htmltools)
 
 # import data
 applications = read.csv("data/AsylgesuchePerNation1986.csv", sep=";")
@@ -124,7 +125,8 @@ ui <- fluidPage(
 server <- function(input, output) {
   
   # output tab 1: map with Leaflet
-  # TODO: color of each polygon should be dependent on year and no. of applications
+  
+  
   output$map <- renderLeaflet({
     leaflet(countries) %>%
       setView(lng = 8.55, lat = 30, zoom = 2) %>%
@@ -136,7 +138,15 @@ server <- function(input, output) {
       addProviderTiles("Esri.WorldTopoMap",    
                        group = "Topo") %>% 
       # Overlay groups for map
-      addPolygons(group = "Countries", data = countries, weight = 1, color = "White", opacity = 1, fillColor = "Red", fillOpacity = 0.1) %>%
+      addPolygons(
+        group = "Countries", 
+        data = countries, 
+        label = ~htmlEscape(formal_en), # TODO add some styling and more fields from countries.json like: pop_est, gdp_est, economy, income_grp
+        weight = 1, 
+        color = "White", 
+        opacity = 1, 
+        fillColor = "Red", # TODO should be depending on number of applications
+        fillOpacity = 0.1) %>%
       addLayersControl(
         baseGroups = c("OSM", "Toner", "Topo"),
         overlayGroups = c("Countries"),
