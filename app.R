@@ -62,8 +62,8 @@ ui <- fluidPage(
   
   # Tab 3
   tabPanel(
-    "Correlation of two countries", 
-    "This panel is intentionally left blank: it should contain a correlation plot/table produced by Input: country1, country 2, Input: year",
+    "Correlation of country and conflict", 
+    "This panel is intentionally left blank: it should contain a correlation plot/table produced by Input: country, conflict, Input: year",
     sidebarLayout(
       sidebarPanel(
         
@@ -125,8 +125,6 @@ ui <- fluidPage(
 server <- function(input, output) {
   
   # output tab 1: map with Leaflet
-  
-  
   output$map <- renderLeaflet({
     leaflet(countries) %>%
       setView(lng = 8.55, lat = 30, zoom = 2) %>%
