@@ -1,11 +1,4 @@
-
-####################################
-# Modified from Winston Chang, 
-# https://shiny.rstudio.com/gallery/shiny-theme-selector.html
-####################################
-
-
-# Load R packages
+#Load R packages
 library(shiny)
 library(shinythemes)
 library(leaflet)
@@ -15,11 +8,11 @@ library(dygraphs)
 library(xts)
 library(htmltools)
 
+
 # import data
-applications = read.csv("data/AsylgesuchePerNation1986.csv", sep=";")
+applications <- read.csv("data/AsylgesuchePerNation1986.csv", sep=";", encoding="UTF-8")
 countries <- geojson_read("data/countries.geo.json", what = "sp")
 map <- leaflet(countries)
-
 
 # Define UI
 ui <- fluidPage(
@@ -32,7 +25,7 @@ ui <- fluidPage(
     tabPanel(
       "By Year: Map View",
           tags$h3("Input:"),
-          sliderInput("slider", "Choose year:", 1986, 2020, 1997),
+          #sliderInput("slider", "Choose year:", applications$X1986, applications$X2020, value = applications$X2020),
           # sidebarPanel
           # pickerInput(
           #"region_select",
