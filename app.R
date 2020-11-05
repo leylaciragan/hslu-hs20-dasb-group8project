@@ -14,6 +14,8 @@ applications <- read.csv("data/AsylgesuchePerNation1986.csv", sep=";", encoding=
 countries <- geojson_read("data/countries.geo.json", what = "sp")
 map <- leaflet(countries)
 
+#source("helpers.R") #use as soon helpers is working
+
 # Define UI
 ui <- fluidPage(
   shinythemes::themeSelector(),
