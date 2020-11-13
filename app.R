@@ -86,7 +86,7 @@ ui <- fluidPage(
   
   # Tab 5
   tabPanel(
-    "Top and Bottom n Countries", 
+    "Top and Bottom Countries", 
     "This panel is intentionally left blank: it should contain a List produced by Input: top countries, Input: Bottom countries, range slider: year",
     sidebarLayout(
       sidebarPanel(
