@@ -18,7 +18,7 @@ map <- leaflet(countries)
 
 # Define UI
 ui <- fluidPage(
-  shinythemes::themeSelector(),
+  #shinythemes::themeSelector(),
   
   navbarPage(
     
@@ -88,14 +88,10 @@ ui <- fluidPage(
   tabPanel(
     "Top and Bottom Countries", 
     "This panel is intentionally left blank: it should contain a List produced by Input: top countries, Input: Bottom countries, range slider: year",
-    sidebarLayout(
-      sidebarPanel(
-        
-      ),
-      mainPanel(
-        
-      )
-    )
+    sliderInput(inputId="num", 
+                label="Choose a number",
+                value=25, min=0, max=100),
+    plotOutput("hist")
   ),
   
   # Tab 6
@@ -219,6 +215,9 @@ server <- function(input, output) {
   # TODO: output tab 4: forecast
   
   # TODO: output tab 5: top & bottom countries
+  output$hist <- renderPlot({
+    hist(rnorm(input$num))
+  })
   
 
   # output tab 6: data table with DT
