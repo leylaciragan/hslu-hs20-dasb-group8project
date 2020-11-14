@@ -87,17 +87,19 @@ ui <- fluidPage(
   # Tab 5
   tabPanel(
     "Top and Bottom Countries", 
-    column(6, sliderInput("slider1", label = h3("Slider"),
-                min = 0, max = 100, value = 50)),
-    
-    column(6,sliderInput("slider2", label = h3("Slider Range"),
-                min = 0, max = 100, value = c(40, 60))),
-  hr(),
-  
-  fluidRow(
-    column(6, verbatimTextOutput("value")),
-    column(6, verbatimTextOutput("range"))
-  )
+    fluidRow(
+      column(1,
+      ),
+      column(10,
+       # Add slider input named 'year' to select years (1986 - 2020)
+       sliderInput('year', 'Select Year', min = 1986, max = 2020, value = 1986, sep = "", width = '90%'),
+       
+       # Add plot output to display top 10 most popular names
+       #plotOutput('plot_top_10_names')
+      ),
+      column(1,
+      )
+    ),
   ),
   
   # Tab 6
@@ -221,11 +223,16 @@ server <- function(input, output) {
   # TODO: output tab 4: forecast
   
   ### output tab 5: top & bottom countries
-    # You can access the value of the widget with input$slider1, e.g.
-    output$value <- renderPrint({ input$slider1 })
-    
-    # You can access the values of the second widget with input$slider2, e.g.
-    output$range <- renderPrint({ input$slider2 })
+  # Render plot of top 10 most popular names
+  output$plot_top_10_names <- renderPlot({
+    #top_10_names <- babynames %>% 
+      # MODIFY CODE BELOW: Filter for the selected year
+      filter(year == input$year) %>% 
+      top_n(10, prop)
+    # Plot top 10 names by sex and year
+    ggplot(top_10_names, aes(x = name, y = prop)) +
+      geom_col(fill = "#263e63")
+  })
 
   # output tab 6: data table with DT
   output$datatable <- renderDT(applications)
