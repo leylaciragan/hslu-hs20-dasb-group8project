@@ -7,12 +7,18 @@ library(DT)
 library(dygraphs)
 library(xts)
 library(htmltools)
+library(dplyr) 
 
 
 # import data
 applications <- read.csv("data/AsylgesuchePerNation1986.csv", sep=";", encoding="UTF-8")
 countries <- geojson_read("data/countries.geo.json", what = "sp")
 map <- leaflet(countries)
+
+## TAB 5:
+# select & filter for tab 5 - cause it's not working anywhere else
+sx_1986 <- select(applications, Country:X1986)
+fx_1986 <- filter(sx_1986, X1986 > 0)
 
 #source("helpers.R") #use as soon helpers is working
 
@@ -96,6 +102,23 @@ ui <- fluidPage(
        
        # Add plot output to display top 10 most popular names
        #plotOutput('plot_top_10_names')
+        View(fx_1986)
+      ),
+      column(1,
+      )
+    ),
+    tags$br(),
+    tags$br(),
+    fluidRow(
+      column(1,
+      ),
+      column(5,
+             "Top application countries",
+             DTOutput(outputId = "dt_1986")
+      ),
+      column(5,
+             "Least application countries",
+             "nice"
       ),
       column(1,
       )
@@ -223,16 +246,16 @@ server <- function(input, output) {
   # TODO: output tab 4: forecast
   
   ### output tab 5: top & bottom countries
-  # Render plot of top 10 most popular names
-  output$plot_top_10_names <- renderPlot({
+  #output$plot_top_10_names <- renderPlot({
     #top_10_names <- babynames %>% 
-      # MODIFY CODE BELOW: Filter for the selected year
-      filter(year == input$year) %>% 
-      top_n(10, prop)
+    # MODIFY CODE BELOW: Filter for the selected year
+   # filter(year == input$year) %>% 
+    #  top_n(10, prop)
     # Plot top 10 names by sex and year
-    ggplot(top_10_names, aes(x = name, y = prop)) +
-      geom_col(fill = "#263e63")
-  })
+    #ggplot(top_10_names, aes(x = name, y = prop)) +
+     # geom_col(fill = "#263e63")
+  #})
+  output$dt_1986 <- renderDT(fx_1986)
 
   # output tab 6: data table with DT
   output$datatable <- renderDT(applications)
