@@ -1,4 +1,4 @@
-#Load R packages
+# Load R packages
 library(shiny)
 library(shinythemes)
 library(leaflet)
@@ -87,11 +87,17 @@ ui <- fluidPage(
   # Tab 5
   tabPanel(
     "Top and Bottom Countries", 
-    "This panel is intentionally left blank: it should contain a List produced by Input: top countries, Input: Bottom countries, range slider: year",
-    sliderInput(inputId="num", 
-                label="Choose a number",
-                value=25, min=0, max=100),
-    plotOutput("hist")
+    column(6, sliderInput("slider1", label = h3("Slider"),
+                min = 0, max = 100, value = 50)),
+    
+    column(6,sliderInput("slider2", label = h3("Slider Range"),
+                min = 0, max = 100, value = c(40, 60))),
+  hr(),
+  
+  fluidRow(
+    column(6, verbatimTextOutput("value")),
+    column(6, verbatimTextOutput("range"))
+  )
   ),
   
   # Tab 6
@@ -214,11 +220,12 @@ server <- function(input, output) {
   
   # TODO: output tab 4: forecast
   
-  # TODO: output tab 5: top & bottom countries
-  output$hist <- renderPlot({
-    hist(rnorm(input$num))
-  })
-  
+  ### output tab 5: top & bottom countries
+    # You can access the value of the widget with input$slider1, e.g.
+    output$value <- renderPrint({ input$slider1 })
+    
+    # You can access the values of the second widget with input$slider2, e.g.
+    output$range <- renderPrint({ input$slider2 })
 
   # output tab 6: data table with DT
   output$datatable <- renderDT(applications)
