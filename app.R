@@ -15,11 +15,6 @@ applications <- read.csv("data/AsylgesuchePerNation1986.csv", sep=";", encoding=
 countries <- geojson_read("data/countries.geo.json", what = "sp")
 map <- leaflet(countries)
 
-## TAB 5:
-# select & filter for tab 5 - cause it's not working anywhere else
-sx_1986 <- select(applications, Country:X1986)
-fx_1986 <- filter(sx_1986, X1986 > 0)
-
 #source("helpers.R") #use as soon helpers is working
 
 # Define UI
@@ -89,41 +84,25 @@ ui <- fluidPage(
       )
     )
   ),
-  
-  # Tab 5
-  tabPanel(
-    "Top and Bottom Countries", 
-    fluidRow(
-      column(1,
-      ),
-      column(10,
-       # Add slider input named 'year' to select years (1986 - 2020)
-       sliderInput('year', 'Select Year', min = 1986, max = 2020, value = 1986, sep = "", width = '90%'),
-       
-       # Add plot output to display top 10 most popular names
-       #plotOutput('plot_top_10_names')
-        View(fx_1986)
-      ),
-      column(1,
-      )
-    ),
-    tags$br(),
-    tags$br(),
-    fluidRow(
-      column(1,
-      ),
-      column(5,
-             "Top application countries",
-             DTOutput(outputId = "dt_1986")
-      ),
-      column(5,
-             "Least application countries",
-             "nice"
-      ),
-      column(1,
-      )
-    ),
-  ),
+  ### START: Tab 5
+  tabPanel("Top and Bottom Countries", 
+           
+           # 1. Row
+           fluidRow(column(1,),column(10,
+                                      # Add slider input named 'year' to select years (1986 - 2020)
+                                      sliderInput(inputId = 'year', label = 'Select Year', min = 1986, max = 2020, value = 1986, sep = "", width = '100%'),
+           ),
+           column(1,)),
+           
+           # 2. Row
+           fluidRow(column(1,),column(5,
+                                      "Top application countries",
+                                      tableOutput('top10')
+           ),column(5,
+                    "Least application countries",
+                    tableOutput('flop10')
+           ),column(1,)),),
+  ### END: Tab 5
   
   # Tab 6
   tabPanel(
@@ -245,17 +224,52 @@ server <- function(input, output) {
   
   # TODO: output tab 4: forecast
   
-  ### output tab 5: top & bottom countries
-  #output$plot_top_10_names <- renderPlot({
-    #top_10_names <- babynames %>% 
-    # MODIFY CODE BELOW: Filter for the selected year
-   # filter(year == input$year) %>% 
-    #  top_n(10, prop)
-    # Plot top 10 names by sex and year
-    #ggplot(top_10_names, aes(x = name, y = prop)) +
-     # geom_col(fill = "#263e63")
-  #})
-  output$dt_1986 <- renderDT(fx_1986)
+  ### START: Output Tab 5
+  output$top10 <- renderTable({
+    # edit the dataset to fit the table
+    A <- applications
+    colnames(A) <- c("Code","Country","1986","1987","1988","1989","1990","1991","1992","1993","1994","1995","1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008","2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020")
+    A[A$Code  == "Stateless", "Country"]<- "Stateless"
+    A[A$Code  == "Without Nationality", "Country"]<- "Without Nationality"
+    A[A$Code  == "State unknown", "Country"]<- "State unknown"
+    A[A$Code  == "Without declaration", "Country"]<- "Without declaration"
+    #delete Code column
+    A$Code <- NULL
+    #select Input country
+    B <- select(A, Country, toString(input$year))
+    #filter all with 0 values
+    C <- filter(B, B[toString(input$year)] > "0")
+    #order
+    D <- C[order(-C[toString(input$year)]),]
+    E <- D[1:10,]
+    E
+  })
+  
+  output$flop10 <- renderTable({
+    # edit the dataset to fit the table
+    A <- applications
+    colnames(A) <- c("Code","Country","1986","1987","1988","1989","1990","1991","1992","1993","1994","1995","1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008","2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020")
+    A[A$Code  == "Stateless", "Country"]<- "Stateless"
+    A[A$Code  == "Without Nationality", "Country"]<- "Without Nationality"
+    A[A$Code  == "State unknown", "Country"]<- "State unknown"
+    A[A$Code  == "Without declaration", "Country"]<- "Without declaration"
+    #delete Code column
+    A$Code <- NULL
+    #select Input country
+    B <- select(A, Country, toString(input$year))
+    #filter all with 0 values
+    C <- filter(B, B[toString(input$year)] > "0")
+    #oder
+    D <- C[order(C[toString(input$year)]),]
+    E <- D[1:10,]
+    E
+  })
+  
+  data <- reactive ({
+    rnorm(input$year)
+  })
+  
+  ### END: Output Tab 5
 
   # output tab 6: data table with DT
   output$datatable <- renderDT(applications)
