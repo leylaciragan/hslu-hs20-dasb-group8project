@@ -1,4 +1,4 @@
-#Load R packages
+# Load R packages
 library(shiny)
 library(shinythemes)
 library(leaflet)
@@ -7,6 +7,7 @@ library(DT)
 library(dygraphs)
 library(xts)
 library(htmltools)
+library(dplyr) 
 
 
 # import data
@@ -18,7 +19,7 @@ map <- leaflet(countries)
 
 # Define UI
 ui <- fluidPage(
-  shinythemes::themeSelector(),
+  #shinythemes::themeSelector(),
   
   navbarPage(
     
@@ -83,20 +84,25 @@ ui <- fluidPage(
       )
     )
   ),
-  
-  # Tab 5
-  tabPanel(
-    "Top and Bottom n Countries", 
-    "This panel is intentionally left blank: it should contain a List produced by Input: top countries, Input: Bottom countries, range slider: year",
-    sidebarLayout(
-      sidebarPanel(
-        
-      ),
-      mainPanel(
-        
-      )
-    )
-  ),
+  ### START: Tab 5
+  tabPanel("Top and Bottom Countries", 
+           
+           # 1. Row
+           fluidRow(column(1,),column(10,
+                                      # Add slider input named 'year' to select years (1986 - 2020)
+                                      sliderInput(inputId = 'year', label = 'Select Year', min = 1986, max = 2020, value = 1986, sep = "", width = '100%'),
+           ),
+           column(1,)),
+           
+           # 2. Row
+           fluidRow(column(1,),column(5,
+                                      "Top application countries",
+                                      tableOutput('top10')
+           ),column(5,
+                    "Least application countries",
+                    tableOutput('flop10')
+           ),column(1,)),),
+  ### END: Tab 5
   
   # Tab 6
   tabPanel(
@@ -218,8 +224,52 @@ server <- function(input, output) {
   
   # TODO: output tab 4: forecast
   
-  # TODO: output tab 5: top & bottom countries
+  ### START: Output Tab 5
+  output$top10 <- renderTable({
+    # edit the dataset to fit the table
+    A <- applications
+    colnames(A) <- c("Code","Country","1986","1987","1988","1989","1990","1991","1992","1993","1994","1995","1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008","2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020")
+    A[A$Code  == "Stateless", "Country"]<- "Stateless"
+    A[A$Code  == "Without Nationality", "Country"]<- "Without Nationality"
+    A[A$Code  == "State unknown", "Country"]<- "State unknown"
+    A[A$Code  == "Without declaration", "Country"]<- "Without declaration"
+    #delete Code column
+    A$Code <- NULL
+    #select Input country
+    B <- select(A, Country, toString(input$year))
+    #filter all with 0 values
+    C <- filter(B, B[toString(input$year)] > "0")
+    #order
+    D <- C[order(-C[toString(input$year)]),]
+    E <- D[1:10,]
+    E
+  })
   
+  output$flop10 <- renderTable({
+    # edit the dataset to fit the table
+    A <- applications
+    colnames(A) <- c("Code","Country","1986","1987","1988","1989","1990","1991","1992","1993","1994","1995","1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008","2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020")
+    A[A$Code  == "Stateless", "Country"]<- "Stateless"
+    A[A$Code  == "Without Nationality", "Country"]<- "Without Nationality"
+    A[A$Code  == "State unknown", "Country"]<- "State unknown"
+    A[A$Code  == "Without declaration", "Country"]<- "Without declaration"
+    #delete Code column
+    A$Code <- NULL
+    #select Input country
+    B <- select(A, Country, toString(input$year))
+    #filter all with 0 values
+    C <- filter(B, B[toString(input$year)] > "0")
+    #oder
+    D <- C[order(C[toString(input$year)]),]
+    E <- D[1:10,]
+    E
+  })
+  
+  data <- reactive ({
+    rnorm(input$year)
+  })
+  
+  ### END: Output Tab 5
 
   # output tab 6: data table with DT
   output$datatable <- renderDT(applications)
