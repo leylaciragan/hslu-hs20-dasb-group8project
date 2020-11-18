@@ -25,19 +25,12 @@ ui <- fluidPage(
     "Applications for asylum in Switzerland",
     tabPanel(
       "By Year: Map View",
-          tags$h3("Input:"),
-          #sliderInput("slider", "Choose year:", applications$X1986, applications$X2020, value = applications$X2020),
-          # sidebarPanel
-          # pickerInput(
-          #"region_select",
-          #"Country:",
-          # choices = as.character(applications[order(-applications$Country),]$Country),
-          # options = list(`actions-box` = TRUE, `none-selected-text` = "Please make a selection!"),
-          # selected = as.character(applications[order(-applications$Country),]$Country)[1:10],
-          # multiple = TRUE),
+          # Add slider input named 'year' to select years (1986 - 2020)
+          sliderInput(inputId = 'application_year', label = 'Select Year', min = 1986, max = 2020, value = 1986, sep = "", width = '100%'),
           h1("Map overview"),
           h4("Number of applications by country of origin"),
-        leafletOutput(outputId = "map")
+        leafletOutput(outputId = "map"),
+      textOutput(outputId = "application_year") # just for test purposes
     ),
     
   # Tab 2
@@ -158,26 +151,44 @@ ui <- fluidPage(
 # Define server function  
 server <- function(input, output) {
   
+  # prepare and filter application data
+  applications_tb <- as_tibble(applications)
+  colnames(applications_tb) <- c("Code","Country","1986","1987","1988","1989","1990","1991","1992","1993","1994","1995","1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008","2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020")
+  #applications_filtered <- select(applications_tb, Country, toString(input@application_year))
+  
   # color palette
   pal <- colorNumeric(
     palette = "YlGnBu", # other palettes for example: GnBu, OrRd, YlOrBr, see https://colorbrewer2.org/#type=sequential&scheme=YlGnBu&n=5
     domain = countries$pop_est)
   
   pal2 <- colorNumeric(
-    palette = "GnBu", # other palettes for example: GnBu, OrRd, YlOrBr, see https://colorbrewer2.org/#type=sequential&scheme=YlGnBu&n=5
+    palette = "GnBu", 
     domain = countries$gdp_md_est)
+  
+  # pal3 <- colorNumeric(
+  #   palette = "YlOrBr", 
+  #   domain = 0:5000) # how do I access the no. of applications?
   
   labels <- sprintf(
     "<strong>Country: %s</strong><br/><br/>
     Postal Code: %s<br/>
     Population: %g<br/>
     GDP: %g<br/>
-    Economical Status: %s",
-    countries$formal_en, countries$postal, countries$pop_est, countries$gdp_md_est, countries$economy
+    Economical Status: %s<br/>
+    Applications: %s",
+    countries$formal_en, countries$postal, countries$pop_est, countries$gdp_md_est, countries$economy, countries$asyl_application
   ) %>% 
     lapply(htmltools::HTML)
   
+  
   # output tab 1: map with Leaflet
+  numbers_selected <- reactive({
+    numbers_selected <- select(applications_tb, toString(input$application_year))
+    print(glimpse(numbers_selected)) # debug only: prints the reactive output to console -> correctly prints out the values of the selected year
+    return(numbers_selected)
+    })
+  output$application_year <- numbers_selected # now it prints the object (column of that year?) How do I access the numbers
+
   output$map <- renderLeaflet({
     leaflet(countries) %>%
       setView(lng = 8.55, lat = 30, zoom = 2) %>%
@@ -190,8 +201,7 @@ server <- function(input, output) {
                        group = "Topo") %>% 
       
 
-      # Overlay groups for map$
-      # TODO add an overlay for number of applications
+      # Overlay groups for map
       addPolygons(
         group = "Countries: Population", 
         data = countries, 
@@ -210,11 +220,21 @@ server <- function(input, output) {
         opacity = 1, 
         fillColor = ~pal2(countries$gdp_md_est), 
         fillOpacity = 0.7) %>%
+      addPolygons(
+        group = "Countries: Applications", 
+        data = countries, 
+        label = labels, 
+        weight = 1, 
+        color = "White", 
+        opacity = 1, 
+        fillColor = "Red", # replace this later with palette 3
+        fillOpacity = 0.5) %>%
       addLayersControl(
         baseGroups = c("OSM", "Toner", "Topo"),
-        overlayGroups = c("Countries: Population", "Countries: GDP"),
+        overlayGroups = c("Countries: Population", "Countries: GDP", "Countries: Applications"),
         options = layersControlOptions(collapsed = FALSE))
   })
+  
   
   # TODO: output tab 2: timetrend with dygraphs
 
@@ -272,16 +292,19 @@ server <- function(input, output) {
   # output tab 6: data table with DT
   output$datatable <- renderDT(applications)
   
-  # output tab 6: download data as csv: TODO is this from an example? Who fixes it?
-  output$downloadCsv <- downloadHandler(
-    filename = function() {
-      paste("refugee_data", applications$date[1], ".csv", sep="")
-    },
-    content = function(file) {
-      write.csv(applications %>% select(c(Country, 1986, 1987)), file)
-    }
-  )
+  # TODO is this from an example? Who fixes it?
+  # output tab 6: download data as csv 
+  # output$downloadCsv <- downloadHandler(
+  #   filename = function() {
+  #     paste("refugee_data", applications$date[1], ".csv", sep="")
+  #   },
+  #   content = function(file) {
+  #     write.csv(applications %>% select(c(Country, 1986, 1987)), file)
+  #   }
+  # )
 
+  ### END: Output Tab 6
+  
 } # end server
 
 
