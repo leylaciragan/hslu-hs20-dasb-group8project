@@ -19,7 +19,7 @@ applis_trnspsd <- read.csv("data/appli_transposed.csv", sep=";", encoding="UTF-8
 
 # Countries and map are used on map tab
 countries <- geojson_read("data/countries.geo.json", what = "sp") # does not make nested data flat
-countries_flat <- fromJSON("C:\\Users\\einanderer\\Desktop\\HSLU\\DASB\\dasb_team08\\data\\countries.geo.json") # makes nested data flat, see https://hendrikvanb.gitlab.io/2018/07/nested_data-json_to_tibble/#:~:text=To%20summarise%3A%20the%20basic%20steps,empty)
+countries_flat <- fromJSON("data/countries.geo.json") # reads nested data flat, but still only two columns see https://hendrikvanb.gitlab.io/2018/07/nested_data-json_to_tibble/#:~:text=To%20summarise%3A%20the%20basic%20steps,empty)
 map <- leaflet(countries)
 
 # Define UI
