@@ -183,11 +183,14 @@ server <- function(input, output) {
   
   # output tab 1: map with Leaflet
   numbers_selected <- reactive({
-    numbers_selected <- select(applications_tb, toString(input$application_year))
+    numbers_selected <- select(applications_tb, Country, toString(input$application_year))
+    names(numbers_selected)[2] <- "year_selected" #change column name to a fixed name 
     print(glimpse(numbers_selected)) # debug only: prints the reactive output to console -> correctly prints out the values of the selected year
     return(numbers_selected)
     })
-  output$application_year <- numbers_selected # now it prints the object (column of that year?) How do I access the numbers
+  
+  
+  output$application_year <- filter(numbers_selected, grepl("Egypt", Country)) # now it prints the object (column of that year?) How do I access the numbers
 
   output$map <- renderLeaflet({
     leaflet(countries) %>%
