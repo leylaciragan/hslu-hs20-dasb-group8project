@@ -18,7 +18,8 @@ applications <- read.csv("data/AsylgesuchePerNation1986.csv", sep=";", encoding=
 applis_trnspsd <- read.csv("data/appli_transposed.csv", sep=";", encoding="UTF-8",  header = TRUE, check.names = FALSE)
 
 # Countries and map are used on map tab
-countries <- geojson_read("data/countries.geo.json", what = "sp")
+countries <- geojson_read("data/countries.geo.json", what = "sp") # does not make nested data flat
+countries_flat <- fromJSON("C:\\Users\\einanderer\\Desktop\\HSLU\\DASB\\dasb_team08\\data\\countries.geo.json") # makes nested data flat, see https://hendrikvanb.gitlab.io/2018/07/nested_data-json_to_tibble/#:~:text=To%20summarise%3A%20the%20basic%20steps,empty)
 map <- leaflet(countries)
 
 # Define UI
@@ -36,7 +37,6 @@ ui <- fluidPage(
           h1("Map overview"),
           h4("Number of applications by country of origin"),
         leafletOutput(outputId = "map"),
-      textOutput(outputId = "application_year") # just for test purposes
     ),
     
   # Tab 2
@@ -164,48 +164,49 @@ ui <- fluidPage(
 # Define server function  
 server <- function(input, output) {
   
-  # prepare and filter application data
-  applications_tb <- as_tibble(applications)
+   # output tab 1: map with Leaflet
+  
+  # prepare and filter application data for map
+  # TODO change data to the flat countries_flat list
+  applications_tb <- as_tibble(applications) # this is the wrong data set, had some trouble with the nested json
+  applications_tb2 <- as_tibble(countries)
   colnames(applications_tb) <- c("Code","Country","1986","1987","1988","1989","1990","1991","1992","1993","1994","1995","1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008","2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020")
   #applications_filtered <- select(applications_tb, Country, toString(input@application_year))
   
-  # color palette
-  pal <- colorNumeric(
-    palette = "YlGnBu", # other palettes for example: GnBu, OrRd, YlOrBr, see https://colorbrewer2.org/#type=sequential&scheme=YlGnBu&n=5
-    domain = countries$pop_est)
-  
-  pal2 <- colorNumeric(
-    palette = "GnBu", 
-    domain = countries$gdp_md_est)
-  
-  # pal3 <- colorNumeric(
-  #   palette = "YlOrBr", 
-  #   domain = 0:5000) # how do I access the no. of applications?
-  
-  labels <- sprintf(
-    "<strong>Country: %s</strong><br/><br/>
-    Postal Code: %s<br/>
-    Population: %g<br/>
-    GDP: %g<br/>
-    Economical Status: %s<br/>
-    Applications: %s",
-    countries$formal_en, countries$postal, countries$pop_est, countries$gdp_md_est, countries$economy, countries$asyl_application
-  ) %>% 
-    lapply(htmltools::HTML)
-  
-  
-  # output tab 1: map with Leaflet
+  # return only data selected by reactive input
+  # TODO change data to the flat countries_flat list
   numbers_selected <- reactive({
     numbers_selected <- select(applications_tb, Country, toString(input$application_year))
     names(numbers_selected)[2] <- "year_selected" #change column name to a fixed name 
     print(glimpse(numbers_selected)) # debug only: prints the reactive output to console -> correctly prints out the values of the selected year
     return(numbers_selected)
-    })
+  })
   
-  
-  output$application_year <- filter(numbers_selected, grepl("Egypt", Country)) # now it prints the object (column of that year?) How do I access the numbers
-
   output$map <- renderLeaflet({
+    # color palette
+    pal <- colorNumeric(
+      palette = "YlGnBu", # other palettes for example: GnBu, OrRd, YlOrBr, see https://colorbrewer2.org/#type=sequential&scheme=YlGnBu&n=5
+      domain = countries$pop_est)
+    
+    pal2 <- colorNumeric(
+      palette = "GnBu", 
+      domain = countries$gdp_md_est)
+    
+    pal3 <- colorBin(
+      palette = "Reds",
+      bins = c(0, 250, 1000, 5000, 20000, 25000),
+      domain = numbers_selected()$year_selected)
+    
+    labels <- sprintf(
+      "<strong>Country: %s</strong><br/><br/>
+    Postal Code: %s<br/>
+    Population: %g<br/>
+    GDP: %g<br/>
+    Economical Status: %s<br/>",
+      countries$formal_en, countries$postal, countries$pop_est, countries$gdp_md_est, countries$economy
+    ) %>% 
+      lapply(htmltools::HTML)
+    
     leaflet(countries) %>%
       setView(lng = 8.55, lat = 30, zoom = 2) %>%
       # Base group maps
@@ -218,6 +219,7 @@ server <- function(input, output) {
       
 
       # Overlay groups for map
+      # TODO how can I prevent re-loading the ones for gdp and population?
       addPolygons(
         group = "Countries: Population", 
         data = countries, 
@@ -243,8 +245,8 @@ server <- function(input, output) {
         weight = 1, 
         color = "White", 
         opacity = 1, 
-        fillColor = "Red", # replace this later with palette 3
-        fillOpacity = 0.5) %>%
+        fillColor = ~pal3(numbers_selected()$year_selected),
+        fillOpacity = 0.7) %>%
       addLayersControl(
         baseGroups = c("OSM", "Toner", "Topo"),
         overlayGroups = c("Countries: Population", "Countries: GDP", "Countries: Applications"),
@@ -252,7 +254,7 @@ server <- function(input, output) {
   })
   
   
-  # TODO: output tab 2: time trend with dygraphs
+  # output tab 2: time trend with dygraphs
   # # Subset data for time series
   selected_countries <- reactive({
     
