@@ -43,6 +43,10 @@ ui <- fluidPage(
   tabPanel(
     "By country: Timetrend", 
     "See how the number of applications has changed over time.",
+    tags$br(),
+    tags$br(),
+    tags$br(),
+    tags$br(),
    
     sidebarLayout(
       sidebarPanel(
@@ -114,7 +118,7 @@ ui <- fluidPage(
     "The following data was used in our project:",
     tags$br(),
     tags$br(),
-    tags$b("1. Asylgesuche nach Nationen (1986 bis 2020). "), 
+    tags$b("1. Asylgesuche nach Nationen (1986 bis 2020). See table below."), 
     "Data published by ",
     tags$a(href="https://www.sem.admin.ch/sem/fr/home/publiservice/statistik/asylstatistik/uebersichten.html",
            "Federal statistical office of Switzerland."),
@@ -123,8 +127,7 @@ ui <- fluidPage(
     tags$br(),
     DTOutput(outputId = "datatable"),
     verbatimTextOutput("rawtable"),
-    downloadButton("downloadCsv", 
-                   "Download as CSV"),
+    downloadButton(outputId="downloadCsv",label="Download as CSV"),
     tags$br(),
     tags$br(),
     tags$b("2. countries.geo.json. "), 
@@ -255,7 +258,6 @@ server <- function(input, output) {
   
   
   # output tab 2: time trend with dygraphs
-  # # Subset data for time series
   selected_countries <- reactive({
     
    # convert to data table to ease later conversion to xts, as described here:
@@ -277,12 +279,7 @@ server <- function(input, output) {
     dyOptions(colors = RColorBrewer::brewer.pal(9, "Set1"))
   })
 
-  # output$lineplot <- renderPlot({
-  #   color = "#434343"
-  #   par(mar = c(4, 4, 1, 1))
-  #   plot(x = selected_countries()$Country, y = selected_countries()$close, type = "l",
-  #        xlab = "Date", ylab = "Number of applications", col = color, fg = color, col.lab = color, col.axis = color)
-  # })
+  ### End output tab 2
   
   # TODO: output tab 3: correlation
   
@@ -335,20 +332,19 @@ server <- function(input, output) {
   
   ### END: Output Tab 5
 
-  # output tab 6: data table with DT
-  output$datatable <- renderDT(applications)
+  # output tab 6: 
+  # data table with DT
+    output$datatable <- renderDT(applications)
+    
+  # Download functionality
+    output$downloadCsv <- downloadHandler(
+        filename = function() {
+        paste("Asylumdata.csv", sep=";")
+      },
+      content = function(file) {
+        write.csv(applications, file)
+    })
   
-  # TODO is this from an example? Who fixes it?
-  # output tab 6: download data as csv 
-  # output$downloadCsv <- downloadHandler(
-  #   filename = function() {
-  #     paste("refugee_data", applications$date[1], ".csv", sep="")
-  #   },
-  #   content = function(file) {
-  #     write.csv(applications %>% select(c(Country, 1986, 1987)), file)
-  #   }
-  # )
-
   ### END: Output Tab 6
   
 } # end server
