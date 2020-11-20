@@ -7,11 +7,17 @@ library(DT)
 library(dygraphs)
 library(xts)
 library(htmltools)
-library(dplyr) 
+library(dplyr)
+library(magrittr)
+library(data.table)
 
 
-# import data
-applications <- read.csv("data/AsylgesuchePerNation1986.csv", sep=";", encoding="UTF-8")
+# import data. Disable 'check.names' to prevent shiny from adding an X prefix.
+applications <- read.csv("data/AsylgesuchePerNation1986.csv", sep=";", encoding="UTF-8",  header = TRUE, check.names = FALSE)
+# applis_trnspsd is used for time series tab
+applis_trnspsd <- read.csv("data/appli_transposed.csv", sep=";", encoding="UTF-8",  header = TRUE, check.names = FALSE)
+
+# Countries and map are used on map tab
 countries <- geojson_read("data/countries.geo.json", what = "sp")
 map <- leaflet(countries)
 
@@ -35,13 +41,20 @@ ui <- fluidPage(
     
   # Tab 2
   tabPanel(
-    "By country: Histogram", 
-    "This panel is intentionally left blank: it should contain a histogram or timetrend produced by Input: country, range slider: year",
+    "By country: Timetrend", 
+    "See how the number of applications has changed over time.",
+   
     sidebarLayout(
       sidebarPanel(
-        p("some timetrend stuff explanation")
+        
+       # Select country of origin to plot
+        selectInput(inputId = "Country", 
+                    label = "Choose country", 
+                    c(sort(applications$Country)), 
+                    selected = "Georgia", multiple = TRUE),
       ),
       mainPanel(
+        #plotOutput as dygraph
         dygraphOutput(outputId = "timetrend")
       )
     )
@@ -239,8 +252,36 @@ server <- function(input, output) {
   })
   
   
-  # TODO: output tab 2: timetrend with dygraphs
+  # TODO: output tab 2: time trend with dygraphs
+  # # Subset data for time series
+  selected_countries <- reactive({
+    
+   # convert to data table to ease later conversion to xts, as described here:
+   # https://stackoverflow.com/questions/4297231/converting-a-data-frame-to-xts
+   tbl = as.data.table(applis_trnspsd)
+   tbl <- select(tbl, Time, input$Country)
+   #convert data table to xts format as described here:
+   # https://stackoverflow.com/questions/23224142/converting-data-frame-to-xts-order-by-requires-an-appropriate-time-based-object
+   qxts <- xts(tbl[, -1], order.by=as.POSIXct(tbl$`Time`))
+   qxts
+  })
+  
+  # rendering our dygrpah
+  ## code copied from here:
+  ## https://rstudio.github.io/dygraphs/index.html
+  output$timetrend <- renderDygraph({
+    dygraph(selected_countries(), main = "No. of applications by country of origin") %>%
+    dyRangeSelector(height = 20) %>%
+    dyOptions(colors = RColorBrewer::brewer.pal(9, "Set1"))
+  })
 
+  # output$lineplot <- renderPlot({
+  #   color = "#434343"
+  #   par(mar = c(4, 4, 1, 1))
+  #   plot(x = selected_countries()$Country, y = selected_countries()$close, type = "l",
+  #        xlab = "Date", ylab = "Number of applications", col = color, fg = color, col.lab = color, col.axis = color)
+  # })
+  
   # TODO: output tab 3: correlation
   
   # TODO: output tab 4: forecast
