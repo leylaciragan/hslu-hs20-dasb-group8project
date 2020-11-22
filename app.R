@@ -292,25 +292,16 @@ server <- function(input, output) {
   ### End output tab 2
   
   # TODO: output tab 3: correlation
-  selected_countries2 <- reactive({
+  #get the input
+  selected_country <-reactive({
     
-    # convert to data table to ease later conversion to xts, as described here:
-    # https://stackoverflow.com/questions/4297231/converting-a-data-frame-to-xts
-    tbl2 = as.data.table(applis_trnspsd)
-    tbl2 <- select(tbl2, Happiness, input$Country2)
-    #convert data table to xts format as described here:
-    # https://stackoverflow.com/questions/23224142/converting-data-frame-to-xts-order-by-requires-an-appropriate-time-based-object
-    qxts2 <- xts(tbl2[, -1], order.by=as.POSIXct(tbl$`Happiness`))
-    qxts2
   })
   
-  # rendering our dygrpah
-  ## code copied from here:
-  ## https://rstudio.github.io/dygraphs/index.html
-  output$happinesstrend <- renderDygraph({
-    dygraph(selected_countries2(), main = "No. of applications by country of origin") %>%
-      dyRangeSelector(height = 20) %>%
-      dyOptions(colors = RColorBrewer::brewer.pal(9, "Set1"))
+  #rendering the dygraph
+  output$happinesstrend <-renderDygraph({
+    dygraph(selected_country(), main = "Correlation of Happiness and Migration per Country") %>%
+    dyRangeSelector(height = 20) %>%
+    dyOptions(colors = RColorBrewer::brewer.pal(9, "Set1"))
   })
   
   ### End output tab 3
