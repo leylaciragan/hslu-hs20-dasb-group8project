@@ -19,7 +19,7 @@ applis_trnspsd <- read.csv("data/appli_transposed.csv", sep=";", encoding="UTF-8
 
 # Countries and map are used on map tab
 countries <- geojson_read("data/countries.geo.json", what = "sp") # does not make nested data flat
-countries_flat <- fromJSON("data/countries.geo.json") # reads nested data flat, but still only two columns see https://hendrikvanb.gitlab.io/2018/07/nested_data-json_to_tibble/#:~:text=To%20summarise%3A%20the%20basic%20steps,empty)
+##countries_flat <- fromJSON("data/countries.geo.json") # reads nested data flat, but still only two columns see https://hendrikvanb.gitlab.io/2018/07/nested_data-json_to_tibble/#:~:text=To%20summarise%3A%20the%20basic%20steps,empty)
 map <- leaflet(countries)
 
 # Define UI
@@ -66,18 +66,28 @@ ui <- fluidPage(
   
   # Tab 3
   tabPanel(
-    "Correlation of country and conflict", 
-    "This panel is intentionally left blank: it should contain a correlation plot/table produced by Input: country, conflict, Input: year",
+    "Correlation of migration and happiness",
+    "See how happiness influences migration.",
+    tags$br(),
+    tags$br(),
+    tags$br(),
+    tags$br(),
+    
     sidebarLayout(
       sidebarPanel(
         
+        # Select country of origin to plot
+        selectInput(inputId = "Country2", 
+                    label = "Choose country", 
+                    c(sort(applications$Country)), 
+                    selected = "Afghanistan", multiple = FALSE),
       ),
       mainPanel(
-        
+        #plotOutput as dygraph
+        dygraphOutput(outputId = "happinesstrend")
       )
     )
-    ),
-
+  ),
 
   # Tab 4
   tabPanel(
@@ -282,6 +292,28 @@ server <- function(input, output) {
   ### End output tab 2
   
   # TODO: output tab 3: correlation
+  selected_countries2 <- reactive({
+    
+    # convert to data table to ease later conversion to xts, as described here:
+    # https://stackoverflow.com/questions/4297231/converting-a-data-frame-to-xts
+    tbl2 = as.data.table(applis_trnspsd)
+    tbl2 <- select(tbl2, Happiness, input$Country2)
+    #convert data table to xts format as described here:
+    # https://stackoverflow.com/questions/23224142/converting-data-frame-to-xts-order-by-requires-an-appropriate-time-based-object
+    qxts2 <- xts(tbl2[, -1], order.by=as.POSIXct(tbl$`Happiness`))
+    qxts2
+  })
+  
+  # rendering our dygrpah
+  ## code copied from here:
+  ## https://rstudio.github.io/dygraphs/index.html
+  output$happinesstrend <- renderDygraph({
+    dygraph(selected_countries2(), main = "No. of applications by country of origin") %>%
+      dyRangeSelector(height = 20) %>%
+      dyOptions(colors = RColorBrewer::brewer.pal(9, "Set1"))
+  })
+  
+  ### End output tab 3
   
   # TODO: output tab 4: forecast
   
