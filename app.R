@@ -188,12 +188,17 @@ server <- function(input, output) {
   #applications_filtered <- select(applications_tb, Country, toString(input@application_year))
   
   # return only data selected by reactive input
-  # TODO change data to the flat countries_flat list
+  # TODO change data to the flat countries_flat list OR filter json_selected below by input year
   numbers_selected <- reactive({
     numbers_selected <- select(applications_tb, Country, toString(input$application_year))
     names(numbers_selected)[2] <- "year_selected" #change column name to a fixed name 
-    print(glimpse(numbers_selected)) # debug only: prints the reactive output to console -> correctly prints out the values of the selected year
+    # print(glimpse(numbers_selected)) # debug only: prints the reactive output to console -> correctly prints out the values of the selected year
     return(numbers_selected)
+  })
+  
+  json_selected <- reactive({
+    json_selected <- filter(countries, toString(input$application_year))
+    print(glimpse(json_selected))
   })
   
   output$map <- renderLeaflet({
@@ -209,7 +214,9 @@ server <- function(input, output) {
     pal3 <- colorBin(
       palette = "Reds",
       bins = c(0, 250, 1000, 5000, 20000, 25000),
-      domain = numbers_selected()$year_selected)
+      domain = numbers_selected()$year_selected
+      #domain = json_selected()
+            )
     
     labels <- sprintf(
       "<strong>Country: %s</strong><br/><br/>
@@ -259,7 +266,7 @@ server <- function(input, output) {
         weight = 1, 
         color = "White", 
         opacity = 1, 
-        fillColor = ~pal3(numbers_selected()$year_selected),
+        fillColor = ~pal3(numbers_selected()$year_selected), 
         fillOpacity = 0.7) %>%
       addLayersControl(
         baseGroups = c("OSM", "Toner", "Topo"),
