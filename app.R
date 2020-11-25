@@ -17,6 +17,8 @@ library(data.table)
 applications <- read.csv("data/AsylgesuchePerNation1986.csv", sep=";", encoding="UTF-8",  header = TRUE, check.names = FALSE)
 # applis_trnspsd is used for time series tab
 applis_trnspsd <- read.csv("data/appli_transposed.csv", sep=";", encoding="UTF-8",  header = TRUE, check.names = FALSE)
+# happiness is used for tab 3
+happiness <- read.csv("")
 
 # Countries and map are used on map tab
 countries <- geojson_read("data/countries.geo.json", what = "sp") # does not make nested data flat
