@@ -18,7 +18,7 @@ applications <- read.csv("data/AsylgesuchePerNation1986.csv", sep=";", encoding=
 # applis_trnspsd is used for time series tab
 applis_trnspsd <- read.csv("data/appli_transposed.csv", sep=";", encoding="UTF-8",  header = TRUE, check.names = FALSE)
 # happiness is used for tab 3
-happiness <- read.csv("")
+happiness_combined <- read.csv("/Users/urs/Festplatte/03_HSLU/00_exercises/dasb_team08/data/Happiness/combined.csv")
 
 # Countries and map are used on map tab
 countries <- geojson_read("data/countries.geo.json", what = "sp") # does not make nested data flat
@@ -82,7 +82,7 @@ ui <- fluidPage(
         # Select country of origin to plot
         selectInput(inputId = "Country2", 
                     label = "Choose country", 
-                    c(sort(applications$Country)), 
+                    c(sort(happiness_combined$Country)), 
                     selected = "Afghanistan", multiple = FALSE),
       ),
       mainPanel(
@@ -305,6 +305,9 @@ server <- function(input, output) {
   #get the input
   selected_country <-reactive({
     
+    tbl2 = as.data.table(happiness_combined)
+    tbl3 <- select(tbl2,'Score19', input$Country)
+    tbl3
   })
   
   #rendering the dygraph
