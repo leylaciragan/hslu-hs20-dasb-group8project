@@ -11,6 +11,7 @@ library(htmltools)
 library(dplyr)
 library(magrittr)
 library(data.table)
+library(ggplot2)
 
 
 # import data. Disable 'check.names' to prevent shiny from adding an X prefix.
@@ -18,7 +19,7 @@ applications <- read.csv("data/AsylgesuchePerNation1986.csv", sep=";", encoding=
 # applis_trnspsd is used for time series tab
 applis_trnspsd <- read.csv("data/appli_transposed.csv", sep=";", encoding="UTF-8",  header = TRUE, check.names = FALSE)
 # happiness is used for tab 3
-happiness_combined <- read.csv("/Users/urs/Festplatte/03_HSLU/00_exercises/dasb_team08/data/Happiness/combined.csv")
+happiness_combined <- read.csv("/Users/urs/Festplatte/03_HSLU/00_exercises/dasb_team08/data/Happiness/combined.csv", sep=",", encoding="UTF-8", header=TRUE)
 
 # Countries and map are used on map tab
 countries <- geojson_read("data/countries.geo.json", what = "sp") # does not make nested data flat
@@ -86,6 +87,7 @@ ui <- fluidPage(
                     selected = "Afghanistan", multiple = FALSE),
       ),
       mainPanel(
+        plotOutput("hist"),
         #plotOutput as dygraph
         dygraphOutput(outputId = "happinesstrend")
       )
@@ -302,20 +304,20 @@ server <- function(input, output) {
   ### End output tab 2
   
   # TODO: output tab 3: correlation
+  
   #get the input
   selected_country <-reactive({
     
-    tbl2 = as.data.table(happiness_combined)
-    tbl3 <- select(tbl2,'Score19', input$Country)
-    tbl3
+    dataFromHappiness <- as.data.frame(happiness_combined)
+    dataFromHappinessWithCountry <- selectInput(dataFromHappiness, "Country", input$Country2)
+    dataFromHappinessWithCountry
   })
   
   #rendering the dygraph
-  output$happinesstrend <-renderDygraph({
-    dygraph(selected_country(), main = "Correlation of Happiness and Migration per Country") %>%
-    dyRangeSelector(height = 20) %>%
-    dyOptions(colors = RColorBrewer::brewer.pal(9, "Set1"))
-  })
+  output$happinesstrend <-renderPlot({
+    data <- selected_country()
+    plot(data)
+   })
   
   ### End output tab 3
   
