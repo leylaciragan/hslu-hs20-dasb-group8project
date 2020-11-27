@@ -19,7 +19,8 @@ applications <- read.csv("data/AsylgesuchePerNation1986.csv", sep=";", encoding=
 # applis_trnspsd is used for time series tab
 applis_trnspsd <- read.csv("data/appli_transposed.csv", sep=";", encoding="UTF-8",  header = TRUE, check.names = FALSE)
 # happiness is used for tab 3
-happiness_combined <- read.csv("/Users/urs/Festplatte/03_HSLU/00_exercises/dasb_team08/data/Happiness/combined.csv", sep=",", encoding="UTF-8", header=TRUE)
+happiness_combined <- read.csv("data/happy_transposed.csv", sep=";", encoding="UTF-8", header=TRUE, check.names = FALSE)
+happy_countries <- read.csv("data/Happiness/combined_cleaned.csv", sep=",", encoding="UTF-8", header=TRUE, check.names = FALSE)
 
 # Countries and map are used on map tab
 countries <- geojson_read("data/countries.geo.json", what = "sp") # does not make nested data flat
@@ -83,8 +84,8 @@ ui <- fluidPage(
         # Select country of origin to plot
         selectInput(inputId = "Country2", 
                     label = "Choose country", 
-                    c(sort(happiness_combined$Country)), 
-                    selected = "Afghanistan", multiple = FALSE),
+                    c(sort(happy_countries$Country)), 
+                    selected = "Afghanistan", multiple = TRUE),
       ),
       mainPanel(
         plotOutput("hist"),
@@ -306,18 +307,26 @@ server <- function(input, output) {
   # TODO: output tab 3: correlation
   
   #get the input
-  selected_country <-reactive({
+  # output tab 3: time trend with dygraphs
+  selected_country <- reactive({
     
-    dataFromHappiness <- as.data.frame(happiness_combined)
-    dataFromHappinessWithCountry <- selectInput(dataFromHappiness, "Country", input$Country2)
-    dataFromHappinessWithCountry
+    # convert to data table to ease later conversion to xts, as described here:
+    # https://stackoverflow.com/questions/4297231/converting-a-data-frame-to-xts
+    tbl = as.data.table(happiness_combined)
+    tbl <- select(tbl, Year, input$Country2)
+    #convert data table to xts format as described here:
+    # https://stackoverflow.com/questions/23224142/converting-data-frame-to-xts-order-by-requires-an-appropriate-time-based-object
+    qxts <- xts(tbl[, -1], order.by=as.POSIXct(tbl$`Year`))
+    qxts
   })
   
-  #rendering the dygraph
-  output$happinesstrend <-renderPlot({
-    data <- selected_country()
-    plot(data)
-   })
+  
+  #rendering the dygraph for happiness
+  output$happinesstrend <- renderDygraph({
+    dygraph(selected_country(), main = "happiness text here") %>%
+      dyRangeSelector(height = 20) %>%
+      dyOptions(colors = RColorBrewer::brewer.pal(9, "Set1"))
+  })
   
   ### End output tab 3
   
