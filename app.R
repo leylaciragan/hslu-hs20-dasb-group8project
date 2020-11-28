@@ -85,10 +85,10 @@ ui <- fluidPage(
         selectInput(inputId = "Country2", 
                     label = "Choose country", 
                     c(sort(happy_countries$Country)), 
-                    selected = "Afghanistan", multiple = TRUE),
+                    selected = "Afghanistan", multiple = FALSE),
       ),
       mainPanel(
-        plotOutput("hist"),
+        dygraphOutput(outputId = "timetrend2"),
         #plotOutput as dygraph
         dygraphOutput(outputId = "happinesstrend")
       )
@@ -310,6 +310,7 @@ server <- function(input, output) {
   # output tab 3: time trend with dygraphs
   selected_country <- reactive({
     
+    
     # convert to data table to ease later conversion to xts, as described here:
     # https://stackoverflow.com/questions/4297231/converting-a-data-frame-to-xts
     tbl = as.data.table(happiness_combined)
@@ -320,10 +321,31 @@ server <- function(input, output) {
     qxts
   })
   
-  
   #rendering the dygraph for happiness
   output$happinesstrend <- renderDygraph({
-    dygraph(selected_country(), main = "happiness text here") %>%
+    dygraph(selected_country(), main = "Happiness-Score from 2016-2019") %>%
+      dyRangeSelector(height = 20) %>%
+      dyOptions(colors = RColorBrewer::brewer.pal(9, "Set1"))
+  })
+  
+  
+  selected_countries2 <- reactive({
+    
+    # convert to data table to ease later conversion to xts, as described here:
+    # https://stackoverflow.com/questions/4297231/converting-a-data-frame-to-xts
+    tbl3 = as.data.table(applis_trnspsd)
+    tbl3 <- select(tbl3, Time, input$Country2)
+    #convert data table to xts format as described here:
+    # https://stackoverflow.com/questions/23224142/converting-data-frame-to-xts-order-by-requires-an-appropriate-time-based-object
+    qxts3 <- xts(tbl3[, -1], order.by=as.POSIXct(tbl3$`Time`))
+    qxts3
+  })
+  
+  # rendering our dygrpah
+  ## code copied from here:
+  ## https://rstudio.github.io/dygraphs/index.html
+  output$timetrend2 <- renderDygraph({
+    dygraph(selected_countries2(), main = "No. of applications from 2016-2019") %>%
       dyRangeSelector(height = 20) %>%
       dyOptions(colors = RColorBrewer::brewer.pal(9, "Set1"))
   })
