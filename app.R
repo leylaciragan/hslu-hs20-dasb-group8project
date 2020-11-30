@@ -19,8 +19,8 @@ applications <- read.csv("data/AsylgesuchePerNation1986.csv", sep=";", encoding=
 applis_trnspsd <- read.csv("data/appli_transposed.csv", sep=";", encoding="UTF-8",  header = TRUE, check.names = FALSE)
 
 # Countries and map are used on map tab
-countries <- geojson_read("data/countries.geo.json", what = "sp") # does not make nested data flat
-countries_flat <- fromJSON("data/countries.geo.json") # reads nested data flat, but still only two columns see https://hendrikvanb.gitlab.io/2018/07/nested_data-json_to_tibble/#:~:text=To%20summarise%3A%20the%20basic%20steps,empty)
+countries <- geojson_read("data/countries.geo.json", what = "sp") # for country polygons, gdp_md_est and pop_est
+countries_csv <- read.csv("data/countries.csv", sep=";", encoding="UTF-8", header = TRUE, check.names = FALSE) # for application numbers per year
 map <- leaflet(countries)
 
 # Define UI
@@ -29,18 +29,24 @@ ui <- fluidPage(
   
   navbarPage(
     
-    #Tab 1
+    ### START: Tab 1
     "Applications for asylum in Switzerland",
     tabPanel(
-      "By Year: Map View",
-          # Add slider input named 'year' to select years (1986 - 2020)
-          sliderInput(inputId = 'application_year', label = 'Select Year', min = 1986, max = 2020, value = 1986, sep = "", width = '100%'),
-          h1("Map overview"),
-          h4("Number of applications by country of origin"),
-        leafletOutput(outputId = "map"),
+      "Applications per Year",
+      h1("Map overview"),
+      h4("Number of applications by year and country of origin"),
+      p("Please select a year from the slider to get the respective application numbers"),
+      sliderInput(inputId = 'application_year', label = 'Select Year', min = 1986, max = 2020, value = 1986, sep = "", width = '100%'),
+      leafletOutput(outputId = "map"),
+      tags$br(),
+      tags$br(),
+      tags$h4("GDP or Population in 2016"),
+      tags$p("This map is  for illustration purposes only and shows only GDP and population number in the year 2016."),
+      leafletOutput(outputId = "map2")
     ),
+    ### END: Tab 1
     
-  # Tab 2
+  ### START: Tab 2
   tabPanel(
     "By country: Timetrend", 
     "See how the number of applications has changed over time.",
@@ -64,8 +70,9 @@ ui <- fluidPage(
       )
     )
   ),
+  ### END: Tab 2
   
-  # Tab 3
+  ### START: Tab 3
   tabPanel(
     "Correlation of migration and happiness",
     "See how happiness influences migration.",
@@ -89,8 +96,9 @@ ui <- fluidPage(
       )
     )
   ),
-
-  # Tab 4
+  ### END: Tab 3
+  
+  ### START: Tab 4
   tabPanel(
     "Forecast", 
     "This panel is intentionally left blank: it should contain a forecast produced by Input: country. Sorry: even if this is a really stupid research question, I think we should try.....",
@@ -103,6 +111,8 @@ ui <- fluidPage(
       )
     )
   ),
+  ### END: Tab 4
+  
   ### START: Tab 5
   tabPanel("Top and Bottom Countries", 
            
@@ -123,7 +133,7 @@ ui <- fluidPage(
            ),column(1,)),),
   ### END: Tab 5
   
-  # Tab 6
+  ### START: Tab 6
   tabPanel(
     "Data and Data Cleaning",
     "The following data was used in our project:",
@@ -145,16 +155,15 @@ ui <- fluidPage(
     "Data published by ",
     tags$a(href="https://github.com/johan/world.geo.json/blob/master/countries.geo.json",
            "Johan on GitHub."),
-    tags$p("We cleaned out all redundant and unnecessary data from this dataset (e.g. redundant country names, codes, etc."),
+    tags$p("The original data contains country polygons and some additional properties as per 2016. We cleaned out all redundant and unnecessary data from this dataset (e.g. columns with redundant country names, codes, etc. With Python (writeCountToGeoJson.py) we added the numbers from AsylgesuchePerNation1986 as new properties. As this is a nested JSON file, we converted the GeoJSON file to a csv. In a fourth step we replaced NA values in the csv with 0: Because not every country had applications, it this case it is ok to just replace it with 0 - the number was 0."),
     tags$br(),
     tags$br()
-           ), # end tab 6
+           ), 
+  ### END: tab 6
   
-  # Tab 7
+  ### START: Tab 7
   tabPanel(
     "About this project", 
-    
-    # Dear team, feel free to change the texts, I'm feeling a little cheesy today (Leyla)
     tags$p("With COVID19 and US elections predominant in the media in 2020 we asked ourselves, what had happened to the refugees in this world. After camp Moria burning down in autumn 2020, we decided to focus our attention to this 'forgotten' topic."),
     tags$p("Narrowing down the area of our research question, we looked for numbers on asylum seekers to Switzerland. With datasets on asylum seekers in Switzerland and others on world conflicts, we try to visualize the bare numbers, but also to investigate possible conncections."),
     tags$p(
@@ -170,53 +179,81 @@ ui <- fluidPage(
     tags$legend("Migrants flee the flames at Moria camp | Photo: Picture-alliance/dpa/S.Baltagiannis", 
                 tags$a(href="https://www.infomigrants.net/en/post/27165/fresh-fires-burn-at-greece-s-largest-refugee-camp-moria")
                 )
-  ) # end tab 7
-  ) # end navbarPage
-  ) # end fluidPage
+  ) # END: tab 7
+  ) # END navbarPage
+  ) # END fluidPage
 
 
 # Define server function  
 server <- function(input, output) {
   
    # output tab 1: map with Leaflet
-  
-  # prepare and filter application data for map
-  # TODO change data to the flat countries_flat list
-  applications_tb <- as_tibble(applications) # this is the wrong data set, had some trouble with the nested json
-  applications_tb2 <- as_tibble(countries)
-  colnames(applications_tb) <- c("Code","Country","1986","1987","1988","1989","1990","1991","1992","1993","1994","1995","1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008","2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020")
-  #applications_filtered <- select(applications_tb, Country, toString(input@application_year))
-  
+  applications_tb2 <- as_tibble(countries_csv)
+
   # return only data selected by reactive input
-  # TODO change data to the flat countries_flat list OR filter json_selected below by input year
   numbers_selected <- reactive({
-    numbers_selected <- select(applications_tb, Country, toString(input$application_year))
+    numbers_selected <- select(applications_tb2, Name, toString(input$application_year))
     names(numbers_selected)[2] <- "year_selected" #change column name to a fixed name 
-    # print(glimpse(numbers_selected)) # debug only: prints the reactive output to console -> correctly prints out the values of the selected year
+    print(glimpse(numbers_selected)) # debug only: prints the reactive output to console -> correctly prints out the values of the selected year
     return(numbers_selected)
-  })
-  
-  json_selected <- reactive({
-    json_selected <- filter(countries, toString(input$application_year))
-    print(glimpse(json_selected))
   })
   
   output$map <- renderLeaflet({
     # color palette
+    pal <- colorBin(
+      palette = "Reds",
+      bins = c(0, 250, 1000, 5000, 10000, 20000),
+      domain = numbers_selected()$year_selected
+      #domain = json_selected()
+            )
+    
+    labels <- sprintf(
+      "<strong>Country: %s</strong><br/><br/>
+      <strong>Applications: %g</strong><br/><br/>
+    Postal Code: %s<br/>
+    Population: %g<br/>
+    GDP: %g<br/>
+    Economical Status: %s<br/>",
+      countries$formal_en, numbers_selected()$year_selected, countries$postal, countries$pop_est, countries$gdp_md_est, countries$economy 
+    ) %>% 
+      lapply(htmltools::HTML)
+    
+    leaflet(countries) %>%
+      setView(lng = 8.55, lat = 30, zoom = 2) %>%
+      # Base group maps
+      addTiles(group = "OSM") %>%
+      addProviderTiles("Stamen.TonerLite",
+                       group = "Toner", 
+                       options = providerTileOptions(minzoom = 1, maxzoom = 10)) %>%
+      addProviderTiles("Esri.WorldTopoMap",    
+                       group = "Topo") %>% 
+      
+
+      # make it an overlay for the map
+      addPolygons(
+        group = "Countries: Applications", 
+        data = countries, 
+        label = labels, 
+        weight = 1, 
+        color = "White", 
+        opacity = 1, 
+        fillColor = ~pal(numbers_selected()$year_selected), 
+        fillOpacity = 0.7) %>%
+      addLayersControl(
+        baseGroups = c("OSM", "Toner", "Topo"),
+        overlayGroups = c("Countries: Applications"),
+        options = layersControlOptions(collapsed = FALSE))
+  })
+  
+  output$map2 <- renderLeaflet({
+    # color palettes
     pal <- colorNumeric(
-      palette = "YlGnBu", # other palettes for example: GnBu, OrRd, YlOrBr, see https://colorbrewer2.org/#type=sequential&scheme=YlGnBu&n=5
+      palette = "YlGnBu",
       domain = countries$pop_est)
     
     pal2 <- colorNumeric(
       palette = "GnBu", 
       domain = countries$gdp_md_est)
-    
-    pal3 <- colorBin(
-      palette = "Reds",
-      bins = c(0, 250, 1000, 5000, 20000, 25000),
-      domain = numbers_selected()$year_selected
-      #domain = json_selected()
-            )
     
     labels <- sprintf(
       "<strong>Country: %s</strong><br/><br/>
@@ -238,9 +275,8 @@ server <- function(input, output) {
       addProviderTiles("Esri.WorldTopoMap",    
                        group = "Topo") %>% 
       
-
+      
       # Overlay groups for map
-      # TODO how can I prevent re-loading the ones for gdp and population?
       addPolygons(
         group = "Countries: Population", 
         data = countries, 
@@ -259,21 +295,12 @@ server <- function(input, output) {
         opacity = 1, 
         fillColor = ~pal2(countries$gdp_md_est), 
         fillOpacity = 0.7) %>%
-      addPolygons(
-        group = "Countries: Applications", 
-        data = countries, 
-        label = labels, 
-        weight = 1, 
-        color = "White", 
-        opacity = 1, 
-        fillColor = ~pal3(numbers_selected()$year_selected), 
-        fillOpacity = 0.7) %>%
       addLayersControl(
         baseGroups = c("OSM", "Toner", "Topo"),
-        overlayGroups = c("Countries: Population", "Countries: GDP", "Countries: Applications"),
+        overlayGroups = c("Countries: Population", "Countries: GDP"),
         options = layersControlOptions(collapsed = FALSE))
   })
-  
+  ### END output tab 1
   
   # output tab 2: time trend with dygraphs
   selected_countries <- reactive({
@@ -296,7 +323,6 @@ server <- function(input, output) {
     dyRangeSelector(height = 20) %>%
     dyOptions(colors = RColorBrewer::brewer.pal(9, "Set1"))
   })
-
   ### End output tab 2
   
   # TODO: output tab 3: correlation
@@ -311,7 +337,6 @@ server <- function(input, output) {
     dyRangeSelector(height = 20) %>%
     dyOptions(colors = RColorBrewer::brewer.pal(9, "Set1"))
   })
-  
   ### End output tab 3
   
   # TODO: output tab 4: forecast
@@ -360,13 +385,13 @@ server <- function(input, output) {
   data <- reactive ({
     rnorm(input$year)
   })
-  
   ### END: Output Tab 5
 
   # output tab 6: 
   # data table with DT
     output$datatable <- renderDT(applications)
     
+    # TODO do we need that?
   # Download functionality
     output$downloadCsv <- downloadHandler(
         filename = function() {
@@ -375,10 +400,9 @@ server <- function(input, output) {
       content = function(file) {
         write.csv(applications, file)
     })
-  
   ### END: Output Tab 6
   
-} # end server
+} ### end server
 
 
 # Create Shiny object
