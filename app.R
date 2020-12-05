@@ -36,10 +36,9 @@ ui <- fluidPage(
     ### START: Tab 1
     "Applications for asylum in Switzerland",
     tabPanel(
-      "Applications per Year",
-      h1("Map overview"),
-      h4("Number of applications by year and country of origin"),
-      p("Please select a year from the slider to get the respective application numbers"),
+      "Map overview",
+      h3("Number of applications by year and country of origin"),
+      p("Select a year from the slider to get the respective application numbers"),
       sliderInput(inputId = 'application_year', label = 'Select Year', min = 1986, max = 2020, value = 1986, sep = "", width = '100%'),
       leafletOutput(outputId = "map"),
       tags$br(),
@@ -52,10 +51,17 @@ ui <- fluidPage(
     
   ### START: Tab 2
   tabPanel(
-    "By country: Timetrend", 
-    "See how the number of applications has changed over time.",
-    tags$br(),
-    tags$br(),
+    "Timetrend",
+    h1("Numbers of applications by country of origin, from 1986 to 2020"),
+    p("Exploratory data analysis delivered some surprinsing insights."),
+    h4("Syria, Afghanistan and Eritrea"),
+    p("For example: A comparison between Syria, Afghanistan and Eritrea shows a dramatic increase in numbers 
+    of applications in 2015. This was expected for Syria, as it was all over the news. 
+      What was surprising, was the drastic drop in applications after 2015. 
+      Another surprise was to see that more people applied from Eritrea and Afghanistan than from Syria."),
+    h4("Serbia, Bosnia and Herzegovina, and Albania"),
+    p("Another interesting comparison is between Serbia, Bosnia and Herzegovina, and Albania. To some of us it was extremely surprising to see that so many more people had applied from Serbia."),
+   
     tags$br(),
     tags$br(),
    
@@ -64,9 +70,9 @@ ui <- fluidPage(
         
        # Select country of origin to plot
         selectInput(inputId = "Country", 
-                    label = "Choose country", 
+                    label = "Choose countries", 
                     c(sort(applications$Country)), 
-                    selected = "Georgia", multiple = TRUE),
+                    selected = "Afghanistan", multiple = TRUE),
       ),
       mainPanel(
         #plotOutput as dygraph
