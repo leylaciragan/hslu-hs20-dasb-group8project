@@ -38,13 +38,13 @@ ui <- fluidPage(
     tabPanel(
       "Map overview",
       h3("Number of applications by year and country of origin"),
-      p("Select a year from the slider to get the respective application numbers"),
+      p("This map shows asylum application numbers to Switzerland. Please select a year from the slider to get the respective application numbers for each country."),
       sliderInput(inputId = 'application_year', label = 'Select Year', min = 1986, max = 2020, value = 1986, sep = "", width = '100%'),
       leafletOutput(outputId = "map"),
       tags$br(),
       tags$br(),
       tags$h4("GDP or Population in 2016"),
-      tags$p("This map is  for illustration purposes only and shows only GDP and population number in the year 2016."),
+      tags$p("Our countries.geo.json file (see tab Data and Data cleaning) contained some additional properties like GDP, info on economics - but only for the year 2016. This map is  for illustration purposes only and shows only GDP and population number in the year 2016."),
       leafletOutput(outputId = "map2")
     ),
     ### END: Tab 1
@@ -205,17 +205,15 @@ server <- function(input, output) {
   numbers_selected <- reactive({
     numbers_selected <- select(applications_tb2, Name, toString(input$application_year))
     names(numbers_selected)[2] <- "year_selected" #change column name to a fixed name 
-    print(glimpse(numbers_selected)) # debug only: prints the reactive output to console -> correctly prints out the values of the selected year
+    # print(glimpse(numbers_selected)) # debug only: prints the reactive output to console -> correctly prints out the values of the selected year
     return(numbers_selected)
   })
   
   output$map <- renderLeaflet({
     # color palette
-    pal <- colorBin(
+    pal <- colorNumeric(
       palette = "Reds",
-      bins = c(0, 250, 1000, 5000, 10000, 20000),
       domain = numbers_selected()$year_selected
-      #domain = json_selected()
             )
     
     labels <- sprintf(
@@ -434,8 +432,7 @@ server <- function(input, output) {
   # data table with DT
     output$datatable <- renderDT(applications)
     
-    # TODO do we need that?
-  # Download functionality
+    # Download functionality
     output$downloadCsv <- downloadHandler(
         filename = function() {
         paste("Asylumdata.csv", sep=";")
