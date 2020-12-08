@@ -21,6 +21,7 @@ applis_trnspsd <- read.csv("data/appli_transposed.csv", sep=";", encoding="UTF-8
 # happiness is used for tab 3
 happiness_combined <- read.csv("data/happy_transposed.csv", sep=";", encoding="UTF-8", header=TRUE, check.names = FALSE)
 happy_countries <- read.csv("data/Happiness/combined_cleaned.csv", sep=",", encoding="UTF-8", header=TRUE, check.names = FALSE)
+happiness_correlation <- read.csv("data/Happiness/Correlation/happiness_correlation2.csv", sep=";", encoding="UTF-8", header = TRUE, check.names = FALSE)
 
 # Countries and map are used on map tab
 countries <- geojson_read("data/countries.geo.json", what = "sp") # for country polygons, gdp_md_est and pop_est
