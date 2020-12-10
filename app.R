@@ -22,6 +22,8 @@ applis_trnspsd <- read.csv("data/appli_transposed.csv", sep=";", encoding="UTF-8
 happiness_combined <- read.csv("data/happy_transposed.csv", sep=";", encoding="UTF-8", header=TRUE, check.names = FALSE)
 happy_countries <- read.csv("data/Happiness/combined_cleaned.csv", sep=",", encoding="UTF-8", header=TRUE, check.names = FALSE)
 happiness_correlation <- read.csv("data/Happiness/Correlation/Useable/CSV_File_2019.csv", sep=",", encoding="UTF-8", header = TRUE, check.names = FALSE)
+happy_countries2019 <- read.csv("/Users/urs/Festplatte/03_HSLU/00_exercises/dasb_team08/data/Happiness/happy_2019.csv", sep=",", encoding="UTF-8", header = TRUE, check.names = FALSE)
+happiness_combined_ascending <- read.csv("/Users/urs/Festplatte/03_HSLU/00_exercises/dasb_team08/data/Happiness/Correlation/Useable/Excel_Ascending2.csv", sep=",", encoding="UTF-8", header=TRUE, check.names = FALSE)
 
 # Countries and map are used on map tab
 countries <- geojson_read("data/countries.geo.json", what = "sp") # for country polygons, gdp_md_est and pop_est
@@ -92,9 +94,37 @@ ui <- fluidPage(
     tags$br(),
     tags$br(),
     
-      mainPanel(
+    fluidRow(
+      column(8,column(12),
+             h4("Top 5 Countries World Happiness Report 2019 + their number of Migration applications to Switzerland"),
+             hr(),
+             tableOutput('hi5'),
+             hr(), 
+             br(),
+             br(),
+             br(),
+             br(),
+             h4("Bottom 5 Countries World Happiness Report 2019 + their number of Migration applications to Switzerland"),
+             hr(),
+             tableOutput('lo5'),
+      ),
+      column(4,column(12),
+             h4("correlation Happiness-Factors and Migration 2019"),
+             hr(),
+             plotOutput("correlation_heat_map_numbered"),
+             h4("Findings from Correlation"),
+             hr(),
+             h5("-obiously very strong (negative) correlation between Rank and Score."),
+             h5("-small negative correlation between better ranking and Number of Migration-Applications. Remember: the smaller a countries rank, the better."),
+             h5("-strongest (0.35 and 0.31) correlation between Migration and Freedom to make life choices and Social suppor"),
+             h5("-strangely no correlation between Rank and Generosity."),
+             h5(" very strongly no correlation")
+      ),
+    ),
+ 
+  
         #plot a heatmap
-        plotOutput(outputId = "correlation_heat_map_numbered"),
+        #plotOutput(outputId = "correlation_heat_map_numbered"),
       
         # Select country of origin to plot
         selectInput(inputId = "Country2", 
@@ -106,7 +136,6 @@ ui <- fluidPage(
         dygraphOutput(outputId = "timetrend2"),
         #plotOutput as dygraph
         dygraphOutput(outputId = "happinesstrend"),
-      ),
   ),
   ### END: Tab 3
   
@@ -379,6 +408,16 @@ server <- function(input, output) {
     dygraph(selected_countries2(), main = "No. of applications from 2016-2019") %>%
       dyRangeSelector(height = 20) %>%
       dyOptions(colors = RColorBrewer::brewer.pal(9, "Set1"))
+  })
+  
+  #happy-table
+  output$hi5 <- renderTable({
+    head(happiness_combined_ascending)
+  })
+  
+  #unhappy-table
+  output$lo5 <- renderTable({
+    tail(happiness_combined_ascending)
   })
   
   #correlation 
