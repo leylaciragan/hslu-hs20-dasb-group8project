@@ -605,7 +605,9 @@ server <- function(input, output) {
 
   # output tab 6: 
   # data table with DT
-    output$datatable <- renderDT(applications,options = list(paging = TRUE))
+    output$datatable <- renderDT(applications, 
+                                 options = list(scrollX = TRUE,paging = TRUE)
+                                 )
     
     # Download functionality
     output$downloadCsv <- downloadHandler(
