@@ -22,8 +22,8 @@ applis_trnspsd <- read.csv("data/appli_transposed.csv", sep=";", encoding="UTF-8
 happiness_combined <- read.csv("data/happy_transposed.csv", sep=";", encoding="UTF-8", header=TRUE, check.names = FALSE)
 happy_countries <- read.csv("data/Happiness/combined_cleaned.csv", sep=",", encoding="UTF-8", header=TRUE, check.names = FALSE)
 happiness_correlation <- read.csv("data/Happiness/Correlation/Useable/CSV_File_2019.csv", sep=",", encoding="UTF-8", header = TRUE, check.names = FALSE)
-happy_countries2019 <- read.csv("/Users/urs/Festplatte/03_HSLU/00_exercises/dasb_team08/data/Happiness/happy_2019.csv", sep=",", encoding="UTF-8", header = TRUE, check.names = FALSE)
-happiness_combined_ascending <- read.csv("/Users/urs/Festplatte/03_HSLU/00_exercises/dasb_team08/data/Happiness/Correlation/Useable/Excel_Ascending2.csv", sep=",", encoding="UTF-8", header=TRUE, check.names = FALSE)
+#happy_countries2019 <- read.csv("data/Happiness/happy_2019.csv", sep=",", encoding="UTF-8", header = TRUE, check.names = FALSE)
+happiness_combined_ascending <- read.csv("data/Happiness/Correlation/Useable/Excel_Ascending2.csv", sep=",", encoding="UTF-8", header=TRUE, check.names = FALSE)
 
 # Countries and map are used on map tab
 countries <- geojson_read("data/countries.geo.json", what = "sp") # for country polygons, gdp_md_est and pop_est
@@ -169,7 +169,7 @@ ui <- fluidPage(
   ### END: Tab 4
   
   ### START: Tab 5
-  tabPanel("Top and Bottom Countries", 
+  tabPanel("Top and bottom countries", 
            
            # 1. Row
            fluidRow(column(1,),column(10,
@@ -190,7 +190,7 @@ ui <- fluidPage(
   
   ### START: Tab 6
   tabPanel(
-    "Data and Data Cleaning",
+    "Data and data cleaning",
     "The following data was used in our project:",
     tags$br(),
     tags$br(),
@@ -217,24 +217,50 @@ ui <- fluidPage(
   ### END: tab 6
   
   ### START: Tab 7
-  tabPanel(
-    "About this project", 
-    tags$p("With COVID19 and US elections predominant in the media in 2020 we asked ourselves, what had happened to the refugees in this world. After camp Moria burning down in autumn 2020, we decided to focus our attention to this 'forgotten' topic."),
-    tags$p("Narrowing down the area of our research question, we looked for numbers on asylum seekers to Switzerland. With datasets on asylum seekers in Switzerland and others on world conflicts, we try to visualize the bare numbers, but also to investigate possible conncections."),
-    tags$p(
-    tags$b("Contributors:"),
-    tags$li("Leyla, Ciragan"),
-    tags$li("Tariq Ghazzawi"),
-    tags$li("Lukas Ingold"),
-    tags$li("Gabriela Moos"),
-    tags$li("Urs Stadelmann")
-    ),
-    tags$h4("We will not forget."), 
-    img(src = "moria.jpeg", width = "844px", height = "475px"),
-    tags$legend("Migrants flee the flames at Moria camp | Photo: Picture-alliance/dpa/S.Baltagiannis", 
-                tags$a(href="https://www.infomigrants.net/en/post/27165/fresh-fires-burn-at-greece-s-largest-refugee-camp-moria")
-                )
-  ) # END: tab 7
+  
+  tabPanel("About this project", 
+           tags$br(),
+           
+           tags$p("This shiny application has been developed 
+           as part of the Data Science Basics class at Lucerne University of Applied Sciences and Arts in Rotkreuz."),
+           
+           tags$b("Date of submission:"),
+           tags$p("December 15, 2020"),
+           tags$br(),
+           tags$br(),
+           tags$br(),
+           tabsetPanel(
+                       tabPanel("Motivation",
+                                tags$br(),
+                                tags$br(),
+                                tags$p("With COVID19 and US elections predominant in the media in 2020, we wondered what had happened to the refugees in this world."),
+                                tags$p("After camp Moria burning down in autumn 2020, we decided to focus our attention to this 'forgotten' topic."),
+                                tags$p("Narrowing down the area of our research question, we looked for numbers on asylum seekers in Switzerland."), 
+                                tags$p("With data sets on asylum seekers in Switzerland, 
+                                       we try to visualize the bare numbers, but also to investigate possible connections."),
+                                ),
+                       tabPanel("Team",
+                                tags$br(),
+                                tags$br(),
+                                
+                                tags$p("The makers are all students of the BSC in Information Technology program."),
+                                tags$b("Contributors:"),
+                                tags$ul(
+                                  tags$li("Leyla Ciragan"),
+                                  tags$li("Tariq Ghazzawi"),
+                                  tags$li("Lukas Ingold"),
+                                  tags$li("Gabriela Moos"),
+                                  tags$li("Urs Stadelmann")
+                                  ),
+                                tags$b("Professor:"),
+                                tags$p("Dr. Luca Mazzola"),
+                        )
+                                
+            )
+  ) 
+         
+           
+  # END: tab 7
   ) # END navbarPage
   ) # END fluidPage
 
