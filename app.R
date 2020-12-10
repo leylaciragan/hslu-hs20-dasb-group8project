@@ -194,26 +194,42 @@ ui <- fluidPage(
     "The following data was used in our project:",
     tags$br(),
     tags$br(),
-    tags$b("1. Asylgesuche nach Nationen (1986 bis 2020). See table below."), 
-    "Data published by ",
-    tags$a(href="https://www.sem.admin.ch/sem/fr/home/publiservice/statistik/asylstatistik/uebersichten.html",
-           "Federal statistical office of Switzerland."),
-    tags$p("To this data set we added a column with the countries postal codes, so we could map the data with other datasets."),
-    tags$br(),
-    tags$br(),
-    DTOutput(outputId = "datatable"),
-    verbatimTextOutput("rawtable"),
-    downloadButton(outputId="downloadCsv",label="Download as CSV"),
-    tags$br(),
-    tags$br(),
-    tags$b("2. countries.geo.json. "), 
-    "Data published by ",
-    tags$a(href="https://github.com/johan/world.geo.json/blob/master/countries.geo.json",
-           "Johan on GitHub."),
-    tags$p("The original data contains country polygons and some additional properties as per 2016. We cleaned out all redundant and unnecessary data from this dataset (e.g. columns with redundant country names, codes, etc. With Python (writeCountToGeoJson.py) we added the numbers from AsylgesuchePerNation1986 as new properties. As this is a nested JSON file, we converted the GeoJSON file to a csv. In a fourth step we replaced NA values in the csv with 0: Because not every country had applications, it this case it is ok to just replace it with 0 - the number was 0."),
-    tags$br(),
-    tags$br()
-           ), 
+    tabsetPanel(
+            tabPanel("Applications for asylum",
+                  tags$br(),
+                  tags$b("Applications for asylum by country (1986 to 2020)."), 
+                  "Data published by the ",
+                  tags$a(href="https://www.sem.admin.ch/sem/fr/home/publiservice/statistik/asylstatistik/uebersichten.html",
+                         "Federal statistical office of Switzerland"), ".",
+                  tags$p("In order to map this data with other datasets, this data set was enriched with an additional column containing the three-letter country code according to ISO 3166-1 alpha-3."),
+                  tags$p("Additionally, a timestamp was added to comply with the format requirements of the time trend graph.", tags$br(),
+                         "As the timestamp was added for mere technical reasons, it is not provided in the data presented here for download.", tags$br(),
+                         "However, as a result of this timestamp, the resolution of the time trend graph may seem higher than it actually is.", tags$br(),
+                         "While on zoom, the graph labels single months, whereas the original data only contains one value per year."),
+                  tags$br(),
+                  tags$br(),
+                  DTOutput(outputId = "datatable"),
+                  verbatimTextOutput("rawtable"),
+                  downloadButton(outputId="downloadCsv",label="Download as CSV"),
+                  tags$br(),
+                  tags$br(),
+              ),
+            tabPanel("Map data",
+                     tags$br(),
+                     tags$b("2. countries.geo.json. "), 
+                     "Data published by ",
+                     tags$a(href="https://github.com/johan/world.geo.json/blob/master/countries.geo.json",
+                            "Johan on GitHub."),
+                     tags$p("The original data contains country polygons and some additional properties as per 2016. We cleaned out all redundant and unnecessary data from this dataset (e.g. columns with redundant country names, codes, etc. With Python (writeCountToGeoJson.py) we added the numbers from AsylgesuchePerNation1986 as new properties. As this is a nested JSON file, we converted the GeoJSON file to a csv. In a fourth step we replaced NA values in the csv with 0: Because not every country had applications, it this case it is ok to just replace it with 0 - the number was 0."),
+                     tags$br(),
+              
+            ),
+            tabPanel("Happiness report",
+                     tags$br(),
+                     tags$p("some data"),
+            )
+          )
+  ),
   ### END: tab 6
   
   ### START: Tab 7
@@ -441,7 +457,7 @@ server <- function(input, output) {
     qxts3
   })
   
-  # rendering our dygrpah
+  # rendering our dygraph
   ## code copied from here:
   ## https://rstudio.github.io/dygraphs/index.html
   output$timetrend2 <- renderDygraph({
@@ -589,7 +605,7 @@ server <- function(input, output) {
 
   # output tab 6: 
   # data table with DT
-    output$datatable <- renderDT(applications)
+    output$datatable <- renderDT(applications,options = list(paging = TRUE))
     
     # Download functionality
     output$downloadCsv <- downloadHandler(
