@@ -61,26 +61,27 @@ ui <- fluidPage(
       We listed some combinations that seemed interesting to us. Your mileage may vary."),
     strong("Syria, Afghanistan and Eritrea"),
     p("A comparison between Syria, Afghanistan and Eritrea shows a dramatic increase in numbers 
-    of applications in 2015. This was expected for Syria. 
-      What was surprising to us, was the drastic drop in applications after 2015. 
+    of applications in 2015. This was expected for Syria.",tags$br()," 
+      What took us by surprise, was the drastic drop in applications after 2015. 
       Another surprise was to see that so many more people applied in 2015 from Eritrea and Afghanistan than from Syria."),
     strong("North Macedonia, Albania, Bosnia & Herzegovina, Serbia"),
     p("Some of us were rather surprised to see that so many more people had applied from Serbia than from Bosnia & Herzegovina."),
-    strong("Ready to explore some more?"),
-    p("Below, a few combinations we found interesting."),
-    p("For best effects, start with the left most country when adding them to the plot."),
-    tags$ul(
-      tags$li("India, Pakistan, Bangladesh. Then, add Sri Lanka"),
-      tags$li("Iraq, Iran"),
-      tags$li("Lithuania, Moldova, Belarus, Ukraine"),
-      tags$li("Morocco, Algeria, Tunesia"),
-      ),
-    tags$br(),
+    
+   
     tags$br(),
    
     sidebarLayout(
       sidebarPanel(
-        
+        strong("Ready to explore?"),
+        p("Below, a few combinations we found interesting."),
+        p("For best effects, start with the left most country when adding them to the plot."),
+        tags$ul(
+          tags$li("India, Pakistan, Bangladesh. Then, add Sri Lanka"),
+          tags$li("Iraq, Iran"),
+          tags$li("Lithuania, Moldova, Belarus, Ukraine"),
+          tags$li("Morocco, Algeria, Tunesia"),
+        ),
+        tags$br(),
        # Select country of origin to plot
         selectInput(inputId = "Country", 
                     label = "Choose countries", 
