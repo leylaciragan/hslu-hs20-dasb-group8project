@@ -20,10 +20,9 @@ applications <- read.csv("data/AsylgesuchePerNation1986.csv", sep=";", encoding=
 applis_trnspsd <- read.csv("data/appli_transposed.csv", sep=";", encoding="UTF-8",  header = TRUE, check.names = FALSE)
 # happiness is used for tab 3
 happiness_combined <- read.csv("data/happy_transposed.csv", sep=";", encoding="UTF-8", header=TRUE, check.names = FALSE)
-happy_countries <- read.csv("data/Happiness/combined_cleaned.csv", sep=",", encoding="UTF-8", header=TRUE, check.names = FALSE)
-happiness_correlation <- read.csv("data/Happiness/Correlation/Useable/CSV_File_2019.csv", sep=",", encoding="UTF-8", header = TRUE, check.names = FALSE)
-#happy_countries2019 <- read.csv("data/Happiness/happy_2019.csv", sep=",", encoding="UTF-8", header = TRUE, check.names = FALSE)
-happiness_combined_ascending <- read.csv("data/Happiness/Correlation/Useable/Excel_Ascending2.csv", sep=",", encoding="UTF-8", header=TRUE, check.names = FALSE)
+happy_countries <- read.csv("data/happy_combined_cleaned.csv", sep=",", encoding="UTF-8", header=TRUE, check.names = FALSE)
+happiness_correlation <- read.csv("data/happy_correlation.csv", sep=",", encoding="UTF-8", header = TRUE, check.names = FALSE)
+happiness_combined_ascending <- read.csv("data/happy_combined_ascending.csv", sep=",", encoding="UTF-8", header=TRUE, check.names = FALSE)
 
 # Countries and map are used on map tab
 countries <- geojson_read("data/countries.geo.json", what = "sp") # for country polygons, gdp_md_est and pop_est
@@ -434,7 +433,7 @@ server <- function(input, output) {
   })
   ### End output tab 2
   
-  # TODO: output tab 3: correlation
+  #output tab 3: correlation
   
   #get the input
   # output tab 3: time trend with dygraphs
@@ -482,12 +481,12 @@ server <- function(input, output) {
   
   #happy-table
   output$hi5 <- renderTable({
-    head(happiness_combined_ascending)
+    head(happiness_combined_ascending, 4)
   })
   
   #unhappy-table
   output$lo5 <- renderTable({
-    tail(happiness_combined_ascending)
+    tail(happiness_combined_ascending, 5)
   })
   
   #correlation 
