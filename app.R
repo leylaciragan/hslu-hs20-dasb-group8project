@@ -102,8 +102,18 @@ ui <- fluidPage(
   ### START: Tab 3
   tabPanel(
     "Correlation of migration and happiness",
-    "See how happiness-factors influence migration.",
+    "The World Happiness Report ranks countries by their happiness levels, based on certain
+variables (see Tab Data and data cleaning).",
     tags$br(),
+    tags$br(),
+    "The two tables show the top and bottom five countries
+from the year 2019 with an extra column showing their number of migration applications to Switzerland. 
+In 2019 Switzerland was ranked number four in the World Happiness Report and was removed from the table below, 
+since there are no migration applications to Switzerland from Switzerland. ",
+    tags$br(),
+    tags$br(),
+    "You can compare the number of applications by country to Switzerland in the years 2016 to 2020 and it's level of 
+Happiness during 2016 to 2019 further below.",
     tags$br(),
     tags$br(),
     tags$br(),
@@ -123,23 +133,23 @@ ui <- fluidPage(
              tableOutput('lo5'),
       ),
       column(4,column(12),
-             h4("correlation Happiness-Factors and Migration 2019"),
+             h4("Correlation Happiness-Variables and Migration 2019"),
              hr(),
              plotOutput("correlation_heat_map_numbered"),
-             h4("Findings from Correlation"),
+             h4("findings from Correlation"),
              hr(),
              h5("-obiously very strong (negative) correlation between Rank and Score."),
-             h5("-small negative correlation between better ranking and Number of Migration-Applications. Remember: the smaller a countries rank, the better."),
-             h5("-strongest (0.35 and 0.31) correlation between Migration and Freedom to make life choices and Social suppor"),
+             h5("-small negative correlation between better ranking and number of Migration-Applications. Remember: the smaller a countries rank, the better."),
+             h5("-strongest (0.35 and 0.31) correlation between Migration and Freedom to make life choices and Social support"),
              h5("-strangely no correlation between Rank and Generosity."),
-             h5(" very strongly no correlation")
       ),
     ),
  
   
         #plot a heatmap
         #plotOutput(outputId = "correlation_heat_map_numbered"),
-      
+    tags$br(),
+    tags$br(),
         # Select country of origin to plot
         selectInput(inputId = "Country2", 
                     label = "Choose country", 
@@ -236,9 +246,40 @@ ui <- fluidPage(
                tags$br(),
                
       ),
-      tabPanel("Happiness report",
+      tabPanel("World Happiness Report",
                tags$br(),
-               tags$p("some data"),
+               tags$b("World Happiness Report (2016-2019)."),
+               "Data is published by",
+               tags$a(href="https://worldhappiness.report/ed/2020/",
+                      "the Sustainable Development Solutions Network."),
+               tags$br(),
+               tags$br(),
+               "The World Happiness Report is an annual publication of the United Nations Sustainable Development Solutions Network. It contains articles, and rankings of national happiness based on respondent ratings of their own lives, which the report also correlates with various life factors. Source: ",
+               tags$a(href="https://en.wikipedia.org/wiki/World_Happiness_Report",
+                      "Wikipedia: World Happiness Report"),
+               tags$br(),
+               tags$br(),
+               tags$b("Methods and philosophy"),
+               "Data is collected from people in over 150 countries. Each variable measured reveals a populated-weighted average score on a scale running from 0 to 10 that is tracked over time and compared against other countries. These variables currently include:",
+               tags$ul(
+                 tags$li("real GDP per capita"),
+                 tags$li("social support"),
+                 tags$li("healthy life expectancy"),
+                 tags$li("freedom to make life choices"),
+                 tags$li("generosity"),
+                 tags$li("perceptions of corruption")
+               ),
+               "Each country is also compared against a hypothetical nation called Dystopia. Dystopia represents the lowest national averages for each key variable and is, along with residual error, used as a regression benchmark. The six metrics are used to explain the estimated extent to which each of these factors contribute to increasing life satisfaction when compared to the hypothetical nation of Dystopia, but they themselves do not have an impact on the total score reported for each country.",
+               tags$br(),
+               tags$br(),
+               "We deleted some countries because some countries do not appear in all reports from 2016 to 2019. We also deleted Switzerland - there are no migration applications to Switzerland from Switzerland.",
+               "For the Year 2019 we added the number of migration application for each country to see how strong the correlation between this number and the happiness factors is. The number of applications from each country to swizterland is from the Federal statistical office of Switzerland.",
+               tags$br(),
+               tags$br(),
+               tags$b("World Happiness Report 2019 with extra column for the migration applications to Switzerland"),
+               tags$br(),
+               tags$br(),
+               tableOutput('WorldHappinessReport2019'),
       )
     )
   ),
@@ -462,7 +503,7 @@ server <- function(input, output) {
     
     # convert to data table to ease later conversion to xts, as described here:
     # https://stackoverflow.com/questions/4297231/converting-a-data-frame-to-xts
-    tbl3 = as.data.table(applis_trnspsd)
+    tbl3 = as.data.table(tail(applis_trnspsd, 6))
     tbl3 <- select(tbl3, Time, input$Country2)
     #convert data table to xts format as described here:
     # https://stackoverflow.com/questions/23224142/converting-data-frame-to-xts-order-by-requires-an-appropriate-time-based-object
@@ -474,7 +515,7 @@ server <- function(input, output) {
   ## code copied from here:
   ## https://rstudio.github.io/dygraphs/index.html
   output$timetrend2 <- renderDygraph({
-    dygraph(selected_countries2(), main = "No. of applications from 2016-2019") %>%
+    dygraph(selected_countries2(), main = "No. of applications from 2016-2020") %>%
       dyRangeSelector(height = 20) %>%
       dyOptions(colors = RColorBrewer::brewer.pal(9, "Set1"))
   })
@@ -667,6 +708,11 @@ server <- function(input, output) {
       },
       content = function(file) {
         write.csv(applications, file)
+    })
+    
+  #data table with World Happiness Report 2019
+    output$WorldHappinessReport2019 <- renderTable({
+      happiness_correlation
     })
   ### END: Output Tab 6
   
