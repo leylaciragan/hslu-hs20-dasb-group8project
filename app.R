@@ -190,13 +190,14 @@ ui <- fluidPage(
                     "Least applications (alltime)",
                     tableOutput('sumflop10')
            )
-           ),),
+           ),
           # 3. Row
-          fluidRow(column(1,),column(10,
-                    p("On this page, you see the top and bottom country-applications (15 entries). Both segments are built the same way. On the left side, you 
-                    can see the updated version from the year you selected in the slider. The right side from both segments displays the sum of
-                    each country over the timespan from 1986 to 2020."),
+          fluidRow(column(1,),column(9,
+                    p("This page shows the top and bottom countries by number of applications (15 entries).
+                    Both segments are built the same way. The left side shows the updated version of the year you selected.
+                    The right side of each segment shows the sum of the top ten countries over the entire time span from 1986 to 2020."),
           ),column(1,)),
+  ),
           ### END: Tab 5
   
   ### START: Tab 6
