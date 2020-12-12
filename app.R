@@ -225,7 +225,7 @@ Happiness during 2016 to 2019 further below.",
                       "Federal statistical office of Switzerland"), ". Last accessed: Sept 12, 2020.",
                tags$p("The following transformations were performed on the data set:"),
                tags$ol(
-                 tags$li("Quality Assessment: The data was analyzed for null values and any unreasonable numbers (exorbitantly high or negative). We found no anomalies, but a very high occurance of zeros. However, this seems plausible in this context."),
+                 tags$li("Quality Assessment: The data was analyzed for null values and any unreasonable numbers (exorbitantly high or negative). We found no anomalies, but a very high occurance of zeros. However, this seems plausible in this context (see applications-profile.html)."),
                  tags$li("As numbers contained some commas to separate thousands, they were converted to integer."),
                  tags$li("As our application is in English, but the statistical office does not provide data in English, the country names were manually translated from German into English."),
                  tags$li("In order to map this data with other datasets, this data set was enriched with an additional column containing the three-letter country code according to ISO 3166-1 alpha-3."),
