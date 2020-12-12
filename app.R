@@ -213,7 +213,7 @@ Happiness during 2016 to 2019 further below.",
   ### START: Tab 6
   tabPanel(
     "Data and data cleaning",
-    "The following data was used in our project:",
+    "The following data was used for this project:",
     tags$br(),
     tags$br(),
     tabsetPanel(
@@ -260,6 +260,13 @@ Happiness during 2016 to 2019 further below.",
                  tags$li("To simplify reading out the data, the (nested) GeoJSON was flattened to a csv format."),
                  tags$li("As not every country listed in the data set actually had applications, NA values in the csv were replaced with 0."),
                ),
+               tags$br(),
+               tags$br(),
+               DTOutput(outputId = "mapdata"),
+              #verbatimTextOutput("rawtable"),
+               downloadButton(outputId="mapdata_csv",label="Download as CSV"),
+               tags$br(),
+               tags$br(),
                
       ),
       tabPanel("World Happiness Report",
@@ -714,17 +721,29 @@ server <- function(input, output) {
   ### END: Output Tab 5
 
   # output tab 6: 
-  # data table with DT
+  # table of applications data with DT
     output$datatable <- renderDT(applications,options = list(scrollX = TRUE,paging = TRUE))
     
     # Download functionality
     output$downloadCsv <- downloadHandler(
         filename = function() {
-        paste("Asylumdata.csv", sep=";")
+        paste("asylum_applications.csv", sep=";")
       },
       content = function(file) {
         write.csv(applications, file)
     })
+    
+  # table of map data with DT
+    output$mapdata <- renderDT(countries_csv,options = list(scrollX = TRUE,paging = TRUE))
+    
+    # Download functionality
+    output$mapdata_csv <- downloadHandler(
+      filename = function() {
+        paste("map_data.csv", sep=";")
+      },
+      content = function(file) {
+        write.csv(countries_csv, file)
+      })
     
   #data table with World Happiness Report 2019
     output$WorldHappinessReport2019 <- renderTable({
