@@ -297,14 +297,18 @@ Happiness during 2016 to 2019 further below.",
                "Each country is also compared against a hypothetical nation called Dystopia. Dystopia represents the lowest national averages for each key variable and is, along with residual error, used as a regression benchmark. The six metrics are used to explain the estimated extent to which each of these factors contribute to increasing life satisfaction when compared to the hypothetical nation of Dystopia, but they themselves do not have an impact on the total score reported for each country.",
                tags$br(),
                tags$br(),
-               "Some countries were deleted from the data as they do not appear in all reports from 2016 to 2019. Switzerland was removed as there are no migration applications to Switzerland from Switzerland.",
+               "Some countries were deleted from the data as they do not appear in all reports from 2016 to 2019. Switzerland was removed as there are no asylum applications to Switzerland from Switzerland.",
                "For the Year 2019, the number of asylum applications by country was added to see how strong the correlation between this number and the happiness factors is. The number of applications from each country to Switzerland is from the Federal statistical office of Switzerland.",
                tags$br(),
                tags$br(),
                tags$b("World Happiness Report 2019 with extra column for the asylum applications to Switzerland"),
                tags$br(),
                tags$br(),
-               tableOutput('WorldHappinessReport2019'),
+               #tableOutput('WorldHappinessReport2019'),
+               DTOutput(outputId = "WorldHappinessReport2019"),
+               downloadButton(outputId="WorldHappinessReport2019_csv",label="Download as CSV"),
+               tags$br(),
+               tags$br(),
       )
     )
   ),
@@ -746,10 +750,17 @@ server <- function(input, output) {
       content = function(file) {
         write.csv(countries_csv, file)
       })
-    
-  #data table with World Happiness Report 2019
-    output$WorldHappinessReport2019 <- renderTable({
-      happiness_correlation
+  
+  # table of happiness data with DT
+  output$WorldHappinessReport2019 <- renderDT(happiness_correlation,options = list(scrollX = TRUE,paging = TRUE))
+  
+  # Download functionality
+  output$WorldHappinessReport2019_csv <- downloadHandler(
+    filename = function() {
+      paste("happiness_data.csv", sep=";")
+    },
+    content = function(file) {
+      write.csv(happiness_correlation, file)
     })
   ### END: Output Tab 6
   
