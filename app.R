@@ -671,8 +671,12 @@ server <- function(input, output) {
   ### End output tab 3
   
   ### START: output tab 4: forecast
-  ### setting time scale of the data and declaring its start, end and frequency
+  # setting time scale of the data and declaring its start, end and frequency
   Y <- ts(forecast_numbers[,2],start=c(1996,1), end = c(2020,1),frequency = 1)
+  # Fitting the data inot an ARIMA model
+  fit_arima <- auto.arima(Y)
+  # Using the ARIMA to plot a forecast of the data
+  fcst <- forecast(fit_arima,h=12)
   
   output$applications <- renderPlot({
     ###  Plotting the original data
@@ -683,15 +687,11 @@ server <- function(input, output) {
   })
   
   output$residuals <- renderPlot({
-    ### Fitting the data inot an ARIMA model and then printing its findings
-    fit_arima <- auto.arima(Y)
-    print(summary(fit_arima))
+    #print(summary(fit_arima))
     checkresiduals(fit_arima)
   })
   
   output$forecast <- renderPlot({
-    ### Using the ARIMA to plot a forecast of the data and prinitng its diagram as well as summarising the data in text form
-    fcst <- forecast(fit_arima,h=12)
     autoplot(fcst) + ggtitle("Asylum applications to Switzerland Forecast") +
       ylab("Applications") +
       xlab("Year")
