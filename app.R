@@ -716,7 +716,7 @@ server <- function(input, output) {
     #select Input country
     B <- select(A, Country, toString(input$year))
     #filter all with 0 values
-    C <- filter(B, B[toString(input$year)] > "0")
+    C <- dplyr::filter(B, B[toString(input$year)] > 0)
     #order
     D <- C[order(-C[toString(input$year)]),]
     E <- D[1:15,]
@@ -736,7 +736,7 @@ server <- function(input, output) {
     #select Input country
     B <- select(A, Country, toString(input$year))
     #filter all with 0 values
-    C <- filter(B, B[toString(input$year)] > "0")
+    C <- dplyr::filter(B, B[toString(input$year)] > 0)
     #order
     D <- C[order(C[toString(input$year)]),]
     E <- D[1:15,]
