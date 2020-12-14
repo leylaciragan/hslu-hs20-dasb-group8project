@@ -13,11 +13,20 @@ library(magrittr)
 library(data.table)
 library(ggplot2)
 library(reshape2)
+library(readr)
+library(forecast)
+library(fpp2)
+library(TTR)
+library(fUnitRoots)
+library(ggfortify)
+library(timeSeries)
+library(timeDate)
 
 # import data. Disable 'check.names' to prevent shiny from adding an X prefix.
 applications <- read.csv("data/AsylgesuchePerNation1986.csv", sep=";", encoding="UTF-8",  header = TRUE, check.names = FALSE)
 # applis_trnspsd is used for time series tab
 applis_trnspsd <- read.csv("data/appli_transposed.csv", sep=";", encoding="UTF-8",  header = TRUE, check.names = FALSE)
+
 # happiness is used for tab 3
 happiness_combined <- read.csv("data/happy_transposed.csv", sep=";", encoding="UTF-8", header=TRUE, check.names = FALSE)
 happy_countries <- read.csv("data/happy_combined_cleaned.csv", sep=",", encoding="UTF-8", header=TRUE, check.names = FALSE)
@@ -28,6 +37,10 @@ happiness_combined_ascending <- read.csv("data/happy_combined_ascending.csv", se
 countries <- geojson_read("data/countries.geo.json", what = "sp") # for country polygons, gdp_md_est and pop_est
 countries_csv <- read.csv("data/countries.csv", sep=";", encoding="UTF-8", header = TRUE, check.names = FALSE) # for application numbers per year
 map <- leaflet(countries)
+
+# import forecast data
+forecast_numbers <- read.csv("data/forecast_data_final.csv")
+
 
 # Define UI
 ui <- fluidPage(
@@ -40,7 +53,14 @@ ui <- fluidPage(
     tabPanel(
       "Map overview",
       h3("Number of applications by year and country of origin"),
-      p("This map shows asylum application numbers to Switzerland. To get the respective application numbers for each country, select a year from the slider."),
+      p("Browse the map over the given time span by selecting a year from the slider: The darker the colour the higher the application numbers. Mouse over the country to get a label with the exact number of applications and some more info."),
+      p("Some interesting first impressions: "),
+      tags$ul(
+        tags$li("Applications from Turkey were predominant between 1986-1990. Whether this was due to the military coup in 1980 or (and) due to massive conflicts between Turkey and PKK is of course not explained by the data."),
+        tags$li("In the 1990s the most applications come from Serbia and Bosnia-Herzegowina, but also from Romania, Iraq and Algeria. 
+                This made one realize the own Eurocentrism - not knowing anything about politics in Algeria."),
+        tags$li("You can also see that after the year 2000 the list of application countries broadens in general."),
+      ),
       sliderInput(inputId = 'application_year', label = 'Select Year', min = 1986, max = 2020, value = 1986, sep = "", width = '100%'),
       leafletOutput(outputId = "map"),
       tags$br(),
@@ -54,7 +74,7 @@ ui <- fluidPage(
   ### START: Tab 2
   tabPanel(
     "Time trend",
-    h1("Numbers of applications by country of origin, from 1986 to 2020"),
+    h3("Numbers of applications by country of origin, from 1986 to 2020"),
     p("Exploring the data by comparing the time trends of different countries might reveal some surprising insights."),
     p("Whether a comparison is interesting depends on one's expectation, of course. 
       We listed some combinations that seemed interesting to us. Your mileage may vary."),
@@ -166,12 +186,24 @@ Happiness during 2016 to 2019 further below.",
   ### START: Tab 4
   tabPanel(
     "Forecast", 
-    "This panel is intentionally left blank: it should contain a forecast produced by Input: country. Sorry: even if this is a really stupid research question, I think we should try.....",
+    "For the forecasting in this tab, ARIMA modelling was used as it is designed for the use with time series.", 
+    tags$br(),
+    tags$br(),
     sidebarLayout(
       sidebarPanel(
+        strong("What application numbers can Switzerland expect?"),
+        tags$br(),
+        p("The first graph shows the application numbers over time. As in the timetrend tab, you can see some sudden drops in the numbers, especially towards 2020. "),
+        p("In the second section, you can find an ACF plot, an autocorrelation function that shows how serial correlation (=autocorrelation) in data changes over time. "),
+        p("The third section contains a graph of the forecast: You can see, the forecasted numbers stays at 21000. "),
+        p("In the fourth section, we print the respective models forecast numbers to a table, the rows start in 2021 and go to 2032. "),
         
-      ),
+         ),
       mainPanel(
+        plotOutput(outputId = 'applications'),
+        plotOutput(outputId = 'residuals'),
+        plotOutput(outputId = 'forecast'),
+        tableOutput(outputId = 'forecast_table')
         
       )
     )
@@ -508,8 +540,7 @@ server <- function(input, output) {
   #get the input
   # output tab 3: time trend with dygraphs
   selected_country <- reactive({
-    
-    
+  
     # convert to data table to ease later conversion to xts, as described here:
     # https://stackoverflow.com/questions/4297231/converting-a-data-frame-to-xts
     tbl = as.data.table(happiness_combined)
@@ -639,7 +670,38 @@ server <- function(input, output) {
   })
   ### End output tab 3
   
-  # TODO: output tab 4: forecast
+  ### START: output tab 4: forecast
+  ### setting time scale of the data and declaring its start, end and frequency
+  Y <- ts(forecast_numbers[,2],start=c(1996,1), end = c(2020,1),frequency = 1)
+  
+  output$applications <- renderPlot({
+    ###  Plotting the original data
+    autoplot(Y)+ 
+      ggtitle("Asylum applications to Switzerland") +
+      ylab("Applications")+
+      xlab("Year")
+  })
+  
+  output$residuals <- renderPlot({
+    ### Fitting the data inot an ARIMA model and then printing its findings
+    fit_arima <- auto.arima(Y)
+    print(summary(fit_arima))
+    checkresiduals(fit_arima)
+  })
+  
+  output$forecast <- renderPlot({
+    ### Using the ARIMA to plot a forecast of the data and prinitng its diagram as well as summarising the data in text form
+    fcst <- forecast(fit_arima,h=12)
+    autoplot(fcst) + ggtitle("Asylum applications to Switzerland Forecast") +
+      ylab("Applications") +
+      xlab("Year")
+  })
+  
+  output$forecast_table <- renderTable({
+    print(summary(fcst))
+  })
+  
+  ### End output tab 4
   
   ### START: Output Tab 5
   output$top10 <- renderTable({
