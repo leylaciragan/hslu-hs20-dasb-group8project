@@ -40,7 +40,7 @@ ui <- fluidPage(
     tabPanel(
       "Map overview",
       h3("Number of applications by year and country of origin"),
-      p("This map shows asylum application numbers to Switzerland. Please select a year from the slider to get the respective application numbers for each country."),
+      p("This map shows asylum application numbers to Switzerland. To get the respective application numbers for each country, select a year from the slider."),
       sliderInput(inputId = 'application_year', label = 'Select Year', min = 1986, max = 2020, value = 1986, sep = "", width = '100%'),
       leafletOutput(outputId = "map"),
       tags$br(),
