@@ -5,7 +5,7 @@ import csv, json
 csvFilePath = 'data/AsylgesuchePerNation1986.csv'
 
 # the file we want to write the information from above into.
-jsonFilePath = 'data/countries.geo.json'
+jsonFilePath = 'sources/data_countries.geo.json'
 
 # create a dictionary that will contain the country code as key, and another dict as value
 # the value dict will contain year (key) and no. of applications (value) of the respective country.

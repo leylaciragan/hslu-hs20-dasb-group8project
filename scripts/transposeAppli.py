@@ -2,7 +2,7 @@
 import csv
 
 import pandas as pd
-df = pd.read_csv('data/AsylgesuchePerNation1986_noCode3.csv', sep=';', encoding='utf-8', header=None, index_col=False)
+df = pd.read_csv('scripts/AsylgesuchePerNation1986_noCode3.csv', sep=';', encoding='utf-8', header=None, index_col=False)
 #print(df.head())
 df_transposed = df.transpose()
 #print(df_transposed.head())
