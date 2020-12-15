@@ -70,8 +70,41 @@ ui <- fluidPage(
       leafletOutput(outputId = "map2")
     ),
     ### END: Tab 1
+  
     
-  ### START: Tab 2
+    ### START: Tab 2 top to bottom
+    tabPanel("Top and bottom countries", 
+             
+             # 1. Row
+             fluidRow(column(12,
+                             # Add slider input named 'year' to select years (1986 - 2020)
+                             sliderInput(inputId = 'year', label = 'Select Year', min = 1986, max = 2020, value = 1986, sep = "", width = '100%'),
+             ),),
+             # 2. Row
+             fluidRow(column(3,
+                             "Top applications (year)",
+                             tableOutput('top10')
+             ),column(3,
+                      "Top applications (alltime)",
+                      tableOutput('sumtop10')
+             ),column(3,
+                      "Least applications (year)",
+                      tableOutput('flop10')
+             ),column(3,
+                      "Least applications (alltime)",
+                      tableOutput('sumflop10')
+             )
+             ),
+             # 3. Row
+             fluidRow(column(1,),column(9,
+                                        p("This page shows the top and bottom countries by number of applications (15 entries).
+                    Both segments are built the same way. The left side shows the updated version of the year you selected.
+                    The right side of each segment shows the sum of the top ten countries over the entire time span from 1986 to 2020."),
+             ),column(1,)),
+    ),
+  ### END: Tab 2 top to bottom  
+    
+  ### START: Tab 3 time trend
   tabPanel(
     "Time trend",
     h3("Numbers of applications by country of origin, from 1986 to 2020"),
@@ -117,9 +150,9 @@ ui <- fluidPage(
       )
     )
   ),
-  ### END: Tab 2
+  ### END: Tab 3 time trend
   
-  ### START: Tab 3
+  ### START: Tab 4 correlation
   tabPanel(
     "Correlation of migration and happiness",
     "The World Happiness Report ranks countries by their happiness levels, based on certain
@@ -181,9 +214,9 @@ Happiness during 2016 to 2019 further below.",
         #plotOutput as dygraph
         dygraphOutput(outputId = "happinesstrend"),
   ),
-  ### END: Tab 3
+  ### END: Tab 4 correlation
   
-  ### START: Tab 4
+  ### START: Tab 5 foecast
   tabPanel(
     "Forecast", 
     "For the forecasting in this tab, ARIMA modelling was used as it is designed for the use with time series.", 
@@ -208,41 +241,10 @@ Happiness during 2016 to 2019 further below.",
       )
     )
   ),
-  ### END: Tab 4
+  ### END: Tab 5 forecast
+
   
-  ### START: Tab 5
-  tabPanel("Top and bottom countries", 
-           
-           # 1. Row
-           fluidRow(column(12,
-                  # Add slider input named 'year' to select years (1986 - 2020)
-                  sliderInput(inputId = 'year', label = 'Select Year', min = 1986, max = 2020, value = 1986, sep = "", width = '100%'),
-           ),),
-           # 2. Row
-           fluidRow(column(3,
-                    "Top applications (year)",
-                    tableOutput('top10')
-           ),column(3,
-                    "Top applications (alltime)",
-                    tableOutput('sumtop10')
-           ),column(3,
-                    "Least applications (year)",
-                    tableOutput('flop10')
-           ),column(3,
-                    "Least applications (alltime)",
-                    tableOutput('sumflop10')
-           )
-           ),
-          # 3. Row
-          fluidRow(column(1,),column(9,
-                    p("This page shows the top and bottom countries by number of applications (15 entries).
-                    Both segments are built the same way. The left side shows the updated version of the year you selected.
-                    The right side of each segment shows the sum of the top ten countries over the entire time span from 1986 to 2020."),
-          ),column(1,)),
-  ),
-          ### END: Tab 5
-  
-  ### START: Tab 6
+  ### START: Tab 6 data
   tabPanel(
     "Data and data cleaning",
     "The following data was used for this project:",
@@ -345,9 +347,9 @@ Happiness during 2016 to 2019 further below.",
     )
   ),
   
-  ### END: tab 6
+  ### END: tab 6 data
   
-  ### START: Tab 7
+  ### START: Tab 7 about
   
   tabPanel("About this project", 
            tags$br(),
@@ -391,11 +393,11 @@ Happiness during 2016 to 2019 further below.",
   ) 
          
            
-  # END: tab 7
+  # END: tab 7 about
   ) # END navbarPage
   ) # END fluidPage
 
-
+############################################################################
 # Define server function  
 server <- function(input, output) {
   
@@ -512,7 +514,92 @@ server <- function(input, output) {
   })
   ### END output tab 1
   
-  # output tab 2: time trend with dygraphs
+  ### START: Output Tab 2
+  output$top10 <- renderTable({
+    # edit the dataset to fit the table
+    A <- applications
+    A[A$Code  == "Stateless", "Country"]<- "Stateless"
+    A[A$Code  == "Without Nationality", "Country"]<- "Without Nationality"
+    A[A$Code  == "State unknown", "Country"]<- "State unknown"
+    A[A$Code  == "Without declaration", "Country"]<- "Without declaration"
+    #delete Code column
+    A$Code <- NULL
+    #select Input country
+    B <- select(A, Country, toString(input$year))
+    #filter all with 0 values
+    C <- dplyr::filter(B, B[toString(input$year)] > 0)
+    #order
+    D <- C[order(-C[toString(input$year)]),]
+    E <- D[1:15,]
+    E
+  })
+  
+  output$flop10 <- renderTable({
+    # edit the dataset to fit the table
+    A <- applications
+    colnames(A) <- c("Code","Country","1986","1987","1988","1989","1990","1991","1992","1993","1994","1995","1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008","2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020")
+    A[A$Code  == "Stateless", "Country"]<- "Stateless"
+    A[A$Code  == "Without Nationality", "Country"]<- "Without Nationality"
+    A[A$Code  == "State unknown", "Country"]<- "State unknown"
+    A[A$Code  == "Without declaration", "Country"]<- "Without declaration"
+    #delete Code column
+    A$Code <- NULL
+    #select Input country
+    B <- select(A, Country, toString(input$year))
+    #filter all with 0 values
+    C <- dplyr::filter(B, B[toString(input$year)] > 0)
+    #order
+    D <- C[order(C[toString(input$year)]),]
+    E <- D[1:15,]
+    E
+  })
+  
+  output$sumtop10 <- renderTable({
+    # edit the dataset to fit the table
+    A <- applications
+    A[A$Code  == "Stateless", "Country"]<- "Stateless"
+    A[A$Code  == "Without Nationality", "Country"]<- "Without Nationality"
+    A[A$Code  == "State unknown", "Country"]<- "State unknown"
+    A[A$Code  == "Without declaration", "Country"]<- "Without declaration"
+    #delete Code column
+    A$Code <- NULL
+    #subset only years
+    B1 <- A[,c("1986","1987":"2020")]
+    Sum <- rowSums(B1)
+    Country <- A[,c("Country")]
+    C <- cbind(Country,Sum)
+    #order
+    D <- C[order(-Sum),]
+    E <- D[1:15,]
+    E
+  })
+  
+  output$sumflop10 <- renderTable({
+    # edit the dataset to fit the table
+    A <- applications
+    A[A$Code  == "Stateless", "Country"]<- "Stateless"
+    A[A$Code  == "Without Nationality", "Country"]<- "Without Nationality"
+    A[A$Code  == "State unknown", "Country"]<- "State unknown"
+    A[A$Code  == "Without declaration", "Country"]<- "Without declaration"
+    #delete Code column
+    A$Code <- NULL
+    #subset only years
+    B1 <- A[,c("1986","1987":"2020")]
+    Sum <- rowSums(B1)
+    Country <- A[,c("Country")]
+    C <- cbind(Country,Sum)
+    #order
+    D <- C[order(Sum),]
+    E <- D[1:15,]
+    E
+  })
+  
+  data <- reactive ({
+    rnorm(input$year)
+  })
+  ### END: Output Tab 2
+  
+  # output tab 3: time trend with dygraphs
   selected_countries <- reactive({
     
    # convert to data table to ease later conversion to xts, as described here:
@@ -533,12 +620,12 @@ server <- function(input, output) {
     dyRangeSelector(height = 20) %>%
     dyOptions(colors = RColorBrewer::brewer.pal(9, "Set1"))
   })
-  ### End output tab 2
+  ### End output tab 3 time trend
   
-  #output tab 3: correlation
+  #output tab 4: correlation
   
   #get the input
-  # output tab 3: time trend with dygraphs
+  # output tab 4: time trend with dygraphs
   selected_country <- reactive({
   
     # convert to data table to ease later conversion to xts, as described here:
@@ -668,9 +755,9 @@ server <- function(input, output) {
   
   
   })
-  ### End output tab 3
+  ### End output tab 4 correlation
   
-  ### START: output tab 4: forecast
+  ### START: output tab 5: forecast
   # setting time scale of the data and declaring its start, end and frequency
   Y <- ts(forecast_numbers[,2],start=c(1996,1), end = c(2020,1),frequency = 1)
   # Fitting the data inot an ARIMA model
@@ -701,94 +788,9 @@ server <- function(input, output) {
     print(summary(fcst))
   })
   
-  ### End output tab 4
-  
-  ### START: Output Tab 5
-  output$top10 <- renderTable({
-    # edit the dataset to fit the table
-    A <- applications
-    A[A$Code  == "Stateless", "Country"]<- "Stateless"
-    A[A$Code  == "Without Nationality", "Country"]<- "Without Nationality"
-    A[A$Code  == "State unknown", "Country"]<- "State unknown"
-    A[A$Code  == "Without declaration", "Country"]<- "Without declaration"
-    #delete Code column
-    A$Code <- NULL
-    #select Input country
-    B <- select(A, Country, toString(input$year))
-    #filter all with 0 values
-    C <- dplyr::filter(B, B[toString(input$year)] > 0)
-    #order
-    D <- C[order(-C[toString(input$year)]),]
-    E <- D[1:15,]
-    E
-  })
-  
-  output$flop10 <- renderTable({
-    # edit the dataset to fit the table
-    A <- applications
-    colnames(A) <- c("Code","Country","1986","1987","1988","1989","1990","1991","1992","1993","1994","1995","1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008","2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020")
-    A[A$Code  == "Stateless", "Country"]<- "Stateless"
-    A[A$Code  == "Without Nationality", "Country"]<- "Without Nationality"
-    A[A$Code  == "State unknown", "Country"]<- "State unknown"
-    A[A$Code  == "Without declaration", "Country"]<- "Without declaration"
-    #delete Code column
-    A$Code <- NULL
-    #select Input country
-    B <- select(A, Country, toString(input$year))
-    #filter all with 0 values
-    C <- dplyr::filter(B, B[toString(input$year)] > 0)
-    #order
-    D <- C[order(C[toString(input$year)]),]
-    E <- D[1:15,]
-    E
-  })
-  
-  output$sumtop10 <- renderTable({
-    # edit the dataset to fit the table
-    A <- applications
-    A[A$Code  == "Stateless", "Country"]<- "Stateless"
-    A[A$Code  == "Without Nationality", "Country"]<- "Without Nationality"
-    A[A$Code  == "State unknown", "Country"]<- "State unknown"
-    A[A$Code  == "Without declaration", "Country"]<- "Without declaration"
-    #delete Code column
-    A$Code <- NULL
-    #subset only years
-    B1 <- A[,c("1986","1987":"2020")]
-    Sum <- rowSums(B1)
-    Country <- A[,c("Country")]
-    C <- cbind(Country,Sum)
-    #order
-    D <- C[order(-Sum),]
-    E <- D[1:15,]
-    E
-  })
-  
-  output$sumflop10 <- renderTable({
-    # edit the dataset to fit the table
-    A <- applications
-    A[A$Code  == "Stateless", "Country"]<- "Stateless"
-    A[A$Code  == "Without Nationality", "Country"]<- "Without Nationality"
-    A[A$Code  == "State unknown", "Country"]<- "State unknown"
-    A[A$Code  == "Without declaration", "Country"]<- "Without declaration"
-    #delete Code column
-    A$Code <- NULL
-    #subset only years
-    B1 <- A[,c("1986","1987":"2020")]
-    Sum <- rowSums(B1)
-    Country <- A[,c("Country")]
-    C <- cbind(Country,Sum)
-    #order
-    D <- C[order(Sum),]
-    E <- D[1:15,]
-    E
-  })
-  
-  data <- reactive ({
-    rnorm(input$year)
-  })
-  ### END: Output Tab 5
+  ### End output tab 5 forecast
 
-  # output tab 6: 
+  # output tab 6: data 
   # table of applications data with DT
     output$datatable <- renderDT(applications,options = list(scrollX = TRUE,paging = TRUE))
     
@@ -824,7 +826,7 @@ server <- function(input, output) {
     content = function(file) {
       write.csv(happiness_correlation, file)
     })
-  ### END: Output Tab 6
+  ### END: Output Tab 6 data
   
 } ### end server
 
